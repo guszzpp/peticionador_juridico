@@ -3,7 +3,7 @@ from peticionador.controladores.controlador_principal import processar_peticao
 def main():
     primeira_pagina = """
     RECORRENTE: João da Silva
-    Trata-se de Agravo Interno interposto contra decisão...
+    Trata-se de Recurso Especial interposto contra decisão...
     """
 
     texto_completo = """
@@ -12,10 +12,25 @@ def main():
     Requer a reforma da decisão por violação aos princípios constitucionais.
     """
 
-    modelos = ["prescrição penal", "nulidade processual"]
-    modelo_path = "src/peticionador/modelos/contrarrazoes_resp.txt"  # ou onde estiver seu modelo
+    modelos_por_tipo = {
+        "RE": "src/peticionador/modelos/contrarrazoes_re.txt",
+        "REsp": "src/peticionador/modelos/contrarrazoes_resp.txt"
+    }
 
-    resultado = processar_peticao(primeira_pagina, texto_completo, modelos, modelo_path)
+    modelo_padrao = "src/peticionador/modelos/contrarrazoes_resp.txt"
+
+    modelos_reutilizaveis = [
+        "prescrição penal",
+        "nulidade processual"
+    ]
+
+    resultado = processar_peticao(
+        primeira_pagina,
+        texto_completo,
+        modelos_reutilizaveis,
+        modelos_por_tipo,
+        modelo_padrao
+    )
 
     estado = resultado["estado"]
     arquivos = resultado["arquivos"]
@@ -31,6 +46,7 @@ def main():
     print(estado.argumentos_reutilizaveis)
     print("\nArquivos gerados:")
     print(arquivos)
+
 
 if __name__ == "__main__":
     main()

@@ -10,21 +10,24 @@ def processar_peticao(
     texto_primeira_pagina: str,
     texto_completo: str,
     modelos_existentes: list[str],
-    modelo_path: str
+    modelos_por_tipo: dict[str, str],
+    modelo_padrao: str = ""
 ) -> dict:
     """
-    Executa o pipeline completo: extrai, valida, resume, sugere teses e gera a peça.
+    Executa o pipeline completo com seleção automática do modelo conforme tipo de recurso.
 
     Parâmetros:
-        texto_primeira_pagina (str): Primeira página extraída do PDF
-        texto_completo (str): Texto integral (limpo) da petição
-        modelos_existentes (list): Modelos reutilizáveis já conhecidos
-        modelo_path (str): Caminho do modelo base de peça a ser preenchido
+        texto_primeira_pagina (str): Primeira página da petição.
+        texto_completo (str): Texto completo limpo.
+        modelos_existentes (list): Lista de modelos reutilizáveis carregados.
+        modelos_por_tipo (dict): Map. tipo_recurso → caminho do modelo textual.
+        modelo_padrao (str): Caminho do modelo padrão, se tipo não for detectado.
 
     Retorna:
-        dict com:
-            - estado: objeto EstadoPeticao atualizado
-            - arquivos: dict com caminhos para .docx e .odt gerados
+        dict: {
+            "estado": EstadoPeticao,
+            "arquivos": dict com caminhos .docx e .odt
+        }
     """
     estado = EstadoPeticao()
 
@@ -39,12 +42,16 @@ def processar_peticao(
         # 3. Resumo técnico
         estado.resumo = gerar_resumo_tecnico(texto_completo)
 
-        # 4. Teses e argumentos
+        # 4. Teses jurídicas
         teses = sugerir_teses(texto_completo, modelos_existentes)
         estado.argumentos_reutilizaveis = teses["presentes"] + teses["sugeridas"]
         estado.modelos_usados = teses["presentes"]
 
-        # 5. Geração da peça com base no modelo selecionado
+        # 5. Escolha do modelo com base no tipo do recurso
+        tipo_detectado = estado.estrutura_base.get("tipo_recurso", "Indeterminado")
+        modelo_path = modelos_por_tipo.get(tipo_detectado, modelo_padrao)
+
+        # 6. Geração da peça
         arquivos = gerar_peca_personalizada(estado, modelo_path)
 
     except Exception as e:
