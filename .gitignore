@@ -1,0 +1,15 @@
+# Ambiente virtual
+venv/
+.env
+__pycache__/
+*.pyc
+
+# PyCharm / VS Code
+.idea/
+.vscode/
+
+# Arquivos temporários
+*.log
+*.bak
+*.swp
+*.tmp
