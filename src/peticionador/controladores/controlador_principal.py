@@ -4,7 +4,7 @@ from peticionador.agentes.agente_gemini import verificar_extracao_gemini
 from peticionador.agentes.agente_resumidor import gerar_resumo_tecnico
 from peticionador.agentes.agente_estrategista import sugerir_teses
 from peticionador.servicos.gerador_documento import gerar_peca_personalizada
-
+from peticionador.servicos.seletor_modelo import selecionar_modelo
 
 def processar_peticao(
     texto_primeira_pagina: str,
@@ -49,7 +49,7 @@ def processar_peticao(
 
         # 5. Escolha do modelo com base no tipo do recurso
         tipo_detectado = estado.estrutura_base.get("tipo_recurso", "Indeterminado")
-        modelo_path = modelos_por_tipo.get(tipo_detectado, modelo_padrao)
+        modelo_path = selecionar_modelo(tipo_detectado, modelos_por_tipo, modelo_padrao)
 
         # 6. Geração da peça
         arquivos = gerar_peca_personalizada(estado, modelo_path)

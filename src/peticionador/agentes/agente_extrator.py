@@ -1,7 +1,4 @@
-# src/peticionador/agentes/agente_extrator.py
-
 from typing import Dict
-
 
 def extrair_info_roberta(texto_pagina: str) -> Dict[str, str]:
     """
@@ -24,7 +21,20 @@ def extrair_info_roberta(texto_pagina: str) -> Dict[str, str]:
                 nome = partes[1].strip()
                 break
 
-    tipo = "Agravo" if "agravo" in texto_pagina.lower() else "Indeterminado"
+    texto_lower = texto_pagina.lower()
+
+    if "recurso extraordinário" in texto_lower:
+        tipo = "RE"
+    elif "recurso especial" in texto_lower:
+        tipo = "REsp"
+    elif "extraordinário" in texto_lower:
+        tipo = "RE"
+    elif "especial" in texto_lower:
+        tipo = "REsp"
+    elif "agravo" in texto_lower:
+        tipo = "Agravo"
+    else:
+        tipo = "Indeterminado"
 
     return {
         "recorrente": nome,
