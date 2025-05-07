@@ -1,0 +1,6 @@
+{
+  "testes/test_agente_gemini.py": true,
+  "testes/testes_unitarios/test_agente_gemini.py::test_gerar_resposta_gemini_conteudo_valido": true,
+  "testes/testes_unitarios/test_agente_estrategista.py::test_sugerir_teses_com_modelos_presentes": true,
+  "testes/testes_unitarios/test_agente_estrategista.py::test_sugerir_teses": true
+}

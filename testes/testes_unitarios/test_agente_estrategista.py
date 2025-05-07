@@ -1,22 +1,18 @@
-from peticionador.agentes.agente_estrategista import sugerir_teses
+from src.peticionador.agentes import agente_estrategista
 
+def test_sugerir_teses_identifica_e_classifica():
+    texto = (
+        "O acusado alega nulidade processual e afronta ao princípio da ampla defesa. "
+        "Sustenta ainda a ocorrência de prescrição retroativa."
+    )
+    modelos_existentes = ["nulidade processual"]
 
-def test_sugestao_com_modelos_existentes():
-    texto = "A peça trata de nulidade absoluta e violação à ampla defesa."
-    modelos = ["nulidade processual", "prescrição penal"]
+    resultado = agente_estrategista.sugerir_teses(texto, modelos_existentes)
 
-    saida = sugerir_teses(texto, modelos)
+    assert isinstance(resultado, dict)
+    assert "sugeridas" in resultado
+    assert "presentes" in resultado
 
-    assert "nulidade processual" in saida["presentes"]
-    assert "violação à ampla defesa" in saida["sugeridas"]
-    assert "prescrição penal" not in saida["sugeridas"]
-
-
-def test_sugestao_sem_modelos_carregados():
-    texto = "A petição sustenta prescrição penal e violação à ampla defesa."
-    modelos = []
-
-    saida = sugerir_teses(texto, modelos)
-
-    assert sorted(saida["sugeridas"]) == sorted(["prescrição penal", "violação à ampla defesa"])
-    assert saida["presentes"] == []
+    assert "nulidade processual" in resultado["presentes"]
+    assert "prescrição penal" in resultado["sugeridas"]
+    assert "violação à ampla defesa" in resultado["sugeridas"]

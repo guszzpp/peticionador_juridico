@@ -1,0 +1,23 @@
+[
+  "testes/testes_unitarios/test_agente_estrategista.py::test_sugerir_teses",
+  "testes/testes_unitarios/test_agente_estrategista.py::test_sugerir_teses_com_modelos_presentes",
+  "testes/testes_unitarios/test_agente_estrategista.py::test_sugerir_teses_identifica_e_classifica",
+  "testes/testes_unitarios/test_agente_estrategista.py::test_sugestao_com_modelos_existentes",
+  "testes/testes_unitarios/test_agente_estrategista.py::test_sugestao_sem_modelos_carregados",
+  "testes/testes_unitarios/test_agente_extrator.py::test_roberta_extrai_dados",
+  "testes/testes_unitarios/test_agente_gemini.py::test_gerar_resposta_gemini_conteudo_valido",
+  "testes/testes_unitarios/test_agente_gemini.py::test_retorna_valores_originais_quando_nao_encontra_nada",
+  "testes/testes_unitarios/test_agente_gemini.py::test_verifica_nome_do_recorrente",
+  "testes/testes_unitarios/test_agente_gemini.py::test_verifica_tipo_recurso_por_palavra_chave",
+  "testes/testes_unitarios/test_agente_resumidor.py::test_resumo_mockado_completo",
+  "testes/testes_unitarios/test_agente_resumidor.py::test_resumo_texto_insuficiente",
+  "testes/testes_unitarios/test_estado_peticao.py::test_estado_peticao_inicial",
+  "testes/testes_unitarios/test_estado_peticao.py::testar_estado_peticao_inicial",
+  "testes/testes_unitarios/test_extrator_tipo_recurso.py::test_extrair_info_roberta[Agravo identificado-RECORRENTE: Fulano\\nTrata-se de agravo interno contra decis\\xe3o...-Fulano-Agravo]",
+  "testes/testes_unitarios/test_extrator_tipo_recurso.py::test_extrair_info_roberta[RE com men\\xe7\\xe3o gen\\xe9rica-RECORRENTE: Jo\\xe3o Pedro\\nRecurso extraordin\\xe1rio contra ac\\xf3rd\\xe3o...-Jo\\xe3o Pedro-RE]",
+  "testes/testes_unitarios/test_extrator_tipo_recurso.py::test_extrair_info_roberta[REsp com men\\xe7\\xe3o expl\\xedcita-RECORRENTE: Maria da Silva\\nRecurso Especial interposto...-Maria da Silva-REsp]",
+  "testes/testes_unitarios/test_extrator_tipo_recurso.py::test_extrair_info_roberta[Texto indefinido-O MP interp\\xf5e recurso constitucional sem nomear o recorrente...-Desconhecido-Indeterminado]",
+  "testes/testes_unitarios/test_preprocessador.py::test_limpeza_simples",
+  "testes/testes_unitarios/test_resumidor_gemini.py::test_resumo_gerado_gemini",
+  "testes/testes_unitarios/test_seletor_modelo.py::test_seletor_modelo_funciona"
+]
