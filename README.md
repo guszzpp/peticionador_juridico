@@ -62,3 +62,25 @@ Observações
     A API Gemini é modular e opcional, podendo ser substituída por outro LLM.
 
     Os modelos de contrarrazões estão na pasta src/peticionador/modelos.
+
+    ## Considerações de Segurança
+
+Durante o desenvolvimento, a aplicação Gradio é configurada para rodar com:
+
+```python
+demo.launch(server_name="0.0.0.0", server_port=7860)  # nosec
+
+Esse bind permite acesso via rede local para fins de teste interno.
+
+Atenção: essa configuração não deve ser utilizada em produção sem camada de autenticação, firewall, proxy reverso e HTTPS. Caso deseje restringir o acesso, modifique para:
+
+demo.launch(server_name="127.0.0.1", server_port=7860)
+
+
+---
+
+### Motivos para essa prática:
+
+- **Justifica o uso de `# nosec`** para o Bandit em auditorias externas.
+- Informa outros desenvolvedores sobre o **risco implícito**.
+- Mostra aderência à diretriz da **Política Unificada – item 6.2: “documentar decisões de segurança explícitas”**.
