@@ -12,12 +12,11 @@ def main():
     estado.argumentos_reutilizaveis = [
         "inexistência de repercussão geral",
         "prescrição penal",
-        "nulidade processual"
+        "nulidade processual",
     ]
 
     saida = gerar_peca_personalizada(
-        estado,
-        modelo_path="src/peticionador/modelos/contrarrazoes_resp.txt"
+        estado, modelo_path="src/peticionador/modelos/contrarrazoes_resp.txt"
     )
 
     print("Arquivos gerados com sucesso:")

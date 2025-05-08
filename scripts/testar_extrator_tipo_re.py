@@ -18,7 +18,7 @@ def main():
         {
             "descricao": "Texto indefinido",
             "texto": "Petição inicial recebida por esta promotoria para ciência.",
-        }
+        },
     ]
 
     for exemplo in exemplos:

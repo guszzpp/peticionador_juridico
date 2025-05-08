@@ -1,5 +1,6 @@
 from typing import Dict
 
+
 def extrair_info_roberta(texto_pagina: str) -> Dict[str, str]:
     """
     Mock de extração com RoBERTa: identifica nome do recorrente e tipo de recurso.
@@ -36,7 +37,4 @@ def extrair_info_roberta(texto_pagina: str) -> Dict[str, str]:
     else:
         tipo = "Indeterminado"
 
-    return {
-        "recorrente": nome,
-        "tipo_recurso": tipo
-    }
+    return {"recorrente": nome, "tipo_recurso": tipo}

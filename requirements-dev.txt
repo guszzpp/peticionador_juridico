@@ -1,15 +1,15 @@
--r requirements.txt  # inclui as dependências da aplicação
+-r requirements.txt  #  inclui as dependências da aplicação
 
-# Testes
+#  Testes
 pytest
 pytest-cov
 
-# Segurança
+#  Segurança
 bandit
 detect-secrets
 pip-audit
 
-# Qualidade e padronização
+#  Qualidade e padronização
 black
 isort
 flake8

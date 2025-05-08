@@ -1,5 +1,6 @@
 from peticionador.controladores.controlador_principal import processar_peticao
 
+
 def main():
     primeira_pagina = """
     RECORRENTE: João da Silva
@@ -14,22 +15,19 @@ def main():
 
     modelos_por_tipo = {
         "RE": "src/peticionador/modelos/contrarrazoes_re.txt",
-        "REsp": "src/peticionador/modelos/contrarrazoes_resp.txt"
+        "REsp": "src/peticionador/modelos/contrarrazoes_resp.txt",
     }
 
     modelo_padrao = "src/peticionador/modelos/contrarrazoes_resp.txt"
 
-    modelos_reutilizaveis = [
-        "prescrição penal",
-        "nulidade processual"
-    ]
+    modelos_reutilizaveis = ["prescrição penal", "nulidade processual"]
 
     resultado = processar_peticao(
         primeira_pagina,
         texto_completo,
         modelos_reutilizaveis,
         modelos_por_tipo,
-        modelo_padrao
+        modelo_padrao,
     )
 
     estado = resultado["estado"]

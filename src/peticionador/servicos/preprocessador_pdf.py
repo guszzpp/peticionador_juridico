@@ -1,4 +1,4 @@
-# src/peticionador/servicos/preprocessador_pdf.py
+#  src/peticionador/servicos/preprocessador_pdf.py
 
 import re
 
@@ -16,20 +16,20 @@ def limpar_texto_pdf(texto: str) -> str:
     Retorna:
         str: Texto limpo e normalizado.
     """
-    # Remove linhas que indicam paginação
-    texto = re.sub(r'(?i)p[aá]gina[s]?[:\s]*\d+(\s+de\s+\d+)?', '', texto)
+    #  Remove linhas que indicam paginação
+    texto = re.sub(r"(?i)p[aá]gina[s]?[:\s]*\d+(\s+de\s+\d+)?", "", texto)
 
-    # Remove cabeçalhos/rodapés genéricos
-    texto = re.sub(r'(?i)poder judici[aá]rio.*\n', '', texto)
-    texto = re.sub(r'(?i)tribunal de justiça.*\n', '', texto)
+    #  Remove cabeçalhos/rodapés genéricos
+    texto = re.sub(r"(?i)poder judici[aá]rio.*\n", "", texto)
+    texto = re.sub(r"(?i)tribunal de justiça.*\n", "", texto)
 
-    # Remove marcas d'água conhecidas (ex: "Provisório", "Minuta")
-    texto = re.sub(r'(?i)provis[oó]rio|minuta|c[oó]pia', '', texto)
+    #  Remove marcas d'água conhecidas (ex: "Provisório", "Minuta")
+    texto = re.sub(r"(?i)provis[oó]rio|minuta|c[oó]pia", "", texto)
 
-    # Normaliza múltiplas quebras de linha
-    texto = re.sub(r'\n{3,}', '\n\n', texto)
+    #  Normaliza múltiplas quebras de linha
+    texto = re.sub(r"\n{3,}", "\n\n", texto)
 
-    # Remove espaços duplicados
-    texto = re.sub(r'[ \t]+', ' ', texto)
+    #  Remove espaços duplicados
+    texto = re.sub(r"[ \t]+", " ", texto)
 
     return texto.strip()

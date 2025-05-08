@@ -1,9 +1,11 @@
-# src/peticionador/agentes/agente_estrategista.py
+#  src/peticionador/agentes/agente_estrategista.py
 
-from typing import List, Dict
+from typing import Dict, List
 
 
-def sugerir_teses(texto_peticao: str, modelos_existentes: List[str]) -> Dict[str, List[str]]:
+def sugerir_teses(
+    texto_peticao: str, modelos_existentes: List[str]
+) -> Dict[str, List[str]]:
     """
     Sugere teses defensivas com base no conteúdo da petição.
 
@@ -17,7 +19,7 @@ def sugerir_teses(texto_peticao: str, modelos_existentes: List[str]) -> Dict[str
             "presentes": [teses já existentes]
         }
     """
-    # MOCK simples baseado em palavras-chave
+    #  MOCK simples baseado em palavras-chave
     teses_identificadas = []
 
     if "nulidade" in texto_peticao.lower():
@@ -32,7 +34,4 @@ def sugerir_teses(texto_peticao: str, modelos_existentes: List[str]) -> Dict[str
     presentes = [t for t in teses_identificadas if t in modelos_existentes]
     novas = [t for t in teses_identificadas if t not in presentes]
 
-    return {
-        "presentes": presentes,
-        "sugeridas": novas
-    }
+    return {"presentes": presentes, "sugeridas": novas}

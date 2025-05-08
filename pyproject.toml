@@ -1,0 +1,27 @@
+[tool.black]
+line-length = 88
+target-version = ['py311']
+skip-string-normalization = false
+
+[tool.isort]
+profile = "black"
+line_length = 88
+known_first_party = ["peticionador"]
+src_paths = ["src"]
+[tool.mypy]
+python_version = "3.11"
+mypy_path = "src"
+explicit_package_bases = true
+namespace_packages = true
+warn_return_any = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+show_column_numbers = true
+show_error_codes = true
+[tool.mypy.overrides]
+module = ["docx.*", "odf.*"]
+ignore_missing_imports = true
+[tool.flake8]
+max-line-length = 110
+extend-ignore = ["E203", "W503", "E261"]
+

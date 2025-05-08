@@ -1,10 +1,11 @@
-# src/peticionador/agentes/agente_gemini.py
+#  src/peticionador/agentes/agente_gemini.py
 
 from typing import Dict
-import os
 
 
-def verificar_extracao_gemini(texto_pagina: str, dados_extraidos: Dict[str, str]) -> Dict[str, str]:
+def verificar_extracao_gemini(
+    texto_pagina: str, dados_extraidos: Dict[str, str]
+) -> Dict[str, str]:
     """
     MOCK: Verifica e corrige os dados extraídos, simulando uma resposta do Gemini.
 
@@ -15,7 +16,7 @@ def verificar_extracao_gemini(texto_pagina: str, dados_extraidos: Dict[str, str]
     Retorna:
         dict: Dicionário validado (ou corrigido) com 'recorrente' e 'tipo_recurso'.
     """
-    # Simula uma verificação e correção
+    #  Simula uma verificação e correção
     if "agravo" in texto_pagina.lower():
         tipo = "Agravo"
     elif "apelação" in texto_pagina.lower():
@@ -26,12 +27,16 @@ def verificar_extracao_gemini(texto_pagina: str, dados_extraidos: Dict[str, str]
         tipo = dados_extraidos.get("tipo_recurso", "Indeterminado")
 
     if "recorrente" in texto_pagina.lower():
-        nome_linha = next((l for l in texto_pagina.splitlines() if "recorrente" in l.lower()), "")
+        nome_linha = next(
+            (
+                linha
+                for linha in texto_pagina.splitlines()
+                if "recorrente" in linha.lower()
+            ),
+            "",
+        )
         nome = nome_linha.split(":")[-1].strip()
     else:
         nome = dados_extraidos.get("recorrente", "Desconhecido")
 
-    return {
-        "recorrente": nome,
-        "tipo_recurso": tipo
-    }
+    return {"recorrente": nome, "tipo_recurso": tipo}

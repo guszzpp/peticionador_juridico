@@ -1,12 +1,14 @@
-# src/peticionador/servicos/resumidor_gemini.py
+#  src/peticionador/servicos/resumidor_gemini.py
 
-from typing import Any
-from google.generativeai import GenerativeModel, configure
+
 import os
+
+from google.generativeai import GenerativeModel, configure
 
 configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 modelo = GenerativeModel("gemini-pro")
+
 
 def gerar_resumo_gemini(texto: str) -> str:
     """

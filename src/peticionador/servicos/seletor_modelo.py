@@ -1,6 +1,9 @@
-# src/peticionador/servicos/seletor_modelo.py
+#  src/peticionador/servicos/seletor_modelo.py
 
-def selecionar_modelo(tipo_recurso: str, modelos_por_tipo: dict[str, str], modelo_padrao: str) -> str:
+
+def selecionar_modelo(
+    tipo_recurso: str, modelos_por_tipo: dict[str, str], modelo_padrao: str
+) -> str:
     """
     Retorna o caminho do modelo apropriado conforme o tipo de recurso identificado.
 

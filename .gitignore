@@ -1,14 +1,14 @@
-# Ambiente virtual
+#  Ambiente virtual
 venv/
 .env
 __pycache__/
 *.pyc
 
-# PyCharm / VS Code
+#  PyCharm / VS Code
 .idea/
 .vscode/
 
-# Arquivos temporários
+#  Arquivos temporários
 *.log
 *.bak
 *.swp
