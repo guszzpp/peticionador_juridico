@@ -1,0 +1,161 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row mt-3">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <button id="btnToggleSidebar" class="btn-toggle-sidebar">
+                <svg width="30" height="30" viewBox="0 0 100 80">
+                    <rect width="100" height="15"></rect>
+                    <rect y="30" width="100" height="15"></rect>
+                    <rect y="60" width="100" height="15"></rect>
+                </svg>
+            </button>
+            <h1 class="text-center flex-grow-1">Peticionador Jurídico</h1>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-md-9">
+        <!-- Área principal -->
+        <div class="card mb-4">
+            <div class="card-body upload-area">
+                <h5>Upload do Arquivo</h5>
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="file-drop-area">
+                        <span class="file-message">Arraste um arquivo ou clique para selecionar</span>
+                        <input class="file-input" type="file" name="arquivo" accept=".pdf">
+                    </div>
+                    <button type="button" id="btnProcessar" class="btn btn-primary mt-2">Processar Petição</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5>Resumo da Petição</h5>
+                <div class="resumo-area">
+                    <textarea id="resumoPeticao" class="form-control" rows="5" readonly></textarea>
+                </div>
+                <div class="mt-2">
+                    <button id="btnUsarResumo" class="btn btn-primary">Usar Resumo da Peça</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5>Pré-visualização da minuta</h5>
+                <div class="minuta-area">
+                    <textarea id="preVisualizacaoMinuta" class="form-control" rows="10"></textarea>
+                </div>
+                <div class="d-flex justify-content-between mt-3">
+                    <button id="btnSalvarRascunho" class="btn btn-primary">Salvar Rascunho</button>
+                    <div class="dropdown">
+                        <button id="btnDownloadMinuta" class="btn btn-success dropdown-toggle" data-toggle="dropdown">
+                            Download da minuta
+                        </button>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" href="#" data-format="docx">Microsoft Word (.docx)</a>
+                            <a class="dropdown-item" href="#" data-format="odt">LibreOffice (.odt)</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5>Modelos Reutilizáveis</h5>
+                </div>
+                <div class="card-body p-2">
+                    <div class="search-box mb-2">
+                        <input type="text" class="form-control" placeholder="Buscar modelo...">
+                    </div>
+                    <div class="modelo-buttons">
+                        <button class="btn btn-primary btn-block mb-2">Contestação</button>
+                        <button class="btn btn-primary btn-block mb-2">Recurso</button>
+                        <button class="btn btn-primary btn-block mb-2">Agravo de Instrumento</button>
+                        <button class="btn btn-primary btn-block mb-2">Petição Inicial</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5>Seleção de Teses</h5>
+                </div>
+                <div class="card-body p-2">
+                    <div class="search-box mb-2">
+                        <input type="text" class="form-control" placeholder="Buscar tese...">
+                    </div>
+                    <div class="teses-container">
+                        {% for tese in teses %}
+                        <button class="btn btn-info btn-block tese-button mb-2" data-tese="{{ tese }}">{{ tese }}</button>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de carregamento -->
+<div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Carregando...</span>
+                </div>
+                <p class="mt-2">Processando petição, aguarde...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de resultados -->
+<div class="modal fade" id="resultadosModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Análise Completa</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Recorrente:</strong> <span id="resultadoRecorrente"></span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Tipo de Recurso:</strong> <span id="resultadoTipoRecurso"></span></p>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-12">
+                        <h6>Resumo Técnico:</h6>
+                        <div class="border p-2 mb-3" id="resultadoResumo"></div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <h6>Teses e Argumentos Aplicáveis:</h6>
+                        <ul id="resultadoArgumentos"></ul>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                <button type="button" class="btn btn-primary" id="btnAplicarResultados">Aplicar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
