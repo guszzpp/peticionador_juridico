@@ -6,8 +6,9 @@ python-docx
 odfpy
 flask>=2.0.0
 flask-wtf>=1.0.0
+flask-cors
 werkzeug>=2.0.0
 # PyPDF2>=2.0.0 (substituído por PyMuPDF)
 python-dotenv>=0.19.0
 PyMuPDF>=1.21.0  # Para extração avançada de PDF
-
+python-decouple

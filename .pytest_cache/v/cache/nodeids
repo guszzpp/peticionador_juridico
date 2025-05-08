@@ -1,4 +1,5 @@
 [
+  "testes/testes_integracao/test_resumo_gemini.py::testar_resumo_com_gemini",
   "testes/testes_unitarios/test_agente_estrategista.py::test_sugerir_teses",
   "testes/testes_unitarios/test_agente_estrategista.py::test_sugerir_teses_com_modelos_presentes",
   "testes/testes_unitarios/test_agente_estrategista.py::test_sugerir_teses_identifica_e_classifica",
