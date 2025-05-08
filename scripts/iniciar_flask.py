@@ -1,6 +1,9 @@
-import sys
+﻿import sys
 import os
 from pathlib import Path
+
+# Definir codificação para UTF-8
+os.environ['PYTHONIOENCODING'] = 'utf-8'
 
 # Adicionar o diretório 'src' ao sys.path
 projeto_dir = Path(__file__).parent.parent

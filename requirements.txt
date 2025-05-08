@@ -1,4 +1,4 @@
-transformers>=4.35
+﻿transformers>=4.35
 torch>=2.0
 google-generativeai>=0.4.0
 google-cloud-aiplatform>=1.43.0
@@ -7,5 +7,7 @@ odfpy
 flask>=2.0.0
 flask-wtf>=1.0.0
 werkzeug>=2.0.0
-PyPDF2>=2.0.0
+# PyPDF2>=2.0.0 (substituído por PyMuPDF)
 python-dotenv>=0.19.0
+PyMuPDF>=1.21.0  # Para extração avançada de PDF
+

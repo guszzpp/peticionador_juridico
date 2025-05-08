@@ -1,11 +1,10 @@
-import os
+﻿import os
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
-import tempfile
-import PyPDF2
 from pathlib import Path
 
 from peticionador.controladores.controlador_principal import processar_peticao
+from peticionador.servicos.extrator_pdf import extrair_texto_pdf
 
 # Configurações
 CAMINHO_MODELOS = {
@@ -28,7 +27,16 @@ TESES_DISPONIVEIS = [
 ]
 
 def configurar_app():
-    app = Flask(__name__)  # Usa os diretórios padrão 'templates' e 'static'
+    # Obtenha o caminho absoluto para o diretório do módulo atual
+    diretorio_atual = os.path.dirname(os.path.abspath(__file__))
+    
+    # Criar a aplicação Flask com diretórios explícitos
+    app = Flask(__name__, 
+                template_folder=os.path.join(diretorio_atual, 'templates'),
+                static_folder=os.path.join(diretorio_atual, 'static'))
+    
+    # Configurar UTF-8
+    app.config['JSON_AS_ASCII'] = False
     
     app.config['SECRET_KEY'] = 'chave-secreta-temporaria'
     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -45,21 +53,6 @@ app = configurar_app()
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def extrair_texto_pdf(arquivo_path):
-    """Extrai texto de um arquivo PDF"""
-    texto = ""
-    try:
-        with open(arquivo_path, 'rb') as file:
-            leitor = PyPDF2.PdfReader(file)
-            for pagina in leitor.pages:
-                texto += pagina.extract_text() + "\n"
-        
-        primeira_pagina = leitor.pages[0].extract_text()
-        return primeira_pagina, texto
-    except Exception as e:
-        app.logger.error(f"Erro ao processar PDF: {str(e)}")
-        return "", ""
-
 @app.route('/')
 def index():
     return render_template('index.html', teses=TESES_DISPONIVEIS)
@@ -68,13 +61,13 @@ def index():
 def processar():
     if 'arquivo' not in request.files:
         flash('Nenhum arquivo enviado')
-        return redirect(request.url)
+        return redirect(url_for('index'))
     
     arquivo = request.files['arquivo']
     
     if arquivo.filename == '':
         flash('Nenhum arquivo selecionado')
-        return redirect(request.url)
+        return redirect(url_for('index'))
     
     if arquivo and allowed_file(arquivo.filename):
         filename = secure_filename(arquivo.filename)
@@ -112,17 +105,28 @@ def processar():
                 'arquivos': arquivos
             }
             
-            return jsonify({
-                'resumo': estado.resumo,
-                'argumentos': estado.argumentos_reutilizaveis,
-                'recorrente': estado.estrutura_base.get('recorrente', 'Não identificado'),
-                'tipo_recurso': estado.estrutura_base.get('tipo_recurso', 'Indeterminado'),
-                'arquivos': list(arquivos.keys())
-            })
+            # Para requisições Ajax (XHR)
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({
+                    'resumo': estado.resumo,
+                    'argumentos': estado.argumentos_reutilizaveis,
+                    'recorrente': estado.estrutura_base.get('recorrente', 'Não identificado'),
+                    'tipo_recurso': estado.estrutura_base.get('tipo_recurso', 'Indeterminado'),
+                    'arquivos': list(arquivos.keys())
+                })
+            
+            # Para requisições normais de formulário
+            flash('Petição processada com sucesso')
+            return render_template('index.html', 
+                               teses=TESES_DISPONIVEIS,
+                               resumo=estado.resumo,
+                               recorrente=estado.estrutura_base.get('recorrente', 'Não identificado'),
+                               tipo_recurso=estado.estrutura_base.get('tipo_recurso', 'Indeterminado'))
             
         except Exception as e:
             app.logger.error(f"Erro no processamento: {str(e)}")
-            return jsonify({'erro': str(e)}), 500
+            flash(f"Erro ao processar petição: {str(e)}")
+            return redirect(url_for('index'))
     
     flash('Tipo de arquivo não permitido')
     return redirect(url_for('index'))
@@ -154,7 +158,22 @@ def download(tipo_arquivo):
     diretorio = os.path.dirname(caminho_arquivo)
     nome_arquivo = os.path.basename(caminho_arquivo)
     
-    return send_from_directory(diretorio, nome_arquivo, as_attachment=True)
+    # Montar um nome de arquivo personalizado baseado no recorrente
+    recorrente = app.config['ULTIMO_PROCESSAMENTO']['estado'].get('recorrente', '')
+    tipo_recurso = app.config['ULTIMO_PROCESSAMENTO']['estado'].get('tipo_recurso', '')
+    
+    if recorrente and tipo_recurso:
+        nome_base = f"Contrarrazoes_{tipo_recurso}_{recorrente.replace(' ', '_')}"
+        if tipo_arquivo == 'docx':
+            nome_personalizado = f"{nome_base}.docx"
+        elif tipo_arquivo == 'odt':
+            nome_personalizado = f"{nome_base}.odt"
+        else:
+            nome_personalizado = nome_arquivo
+    else:
+        nome_personalizado = nome_arquivo
+    
+    return send_from_directory(diretorio, nome_arquivo, as_attachment=True, download_name=nome_personalizado)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

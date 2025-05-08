@@ -1,8 +1,10 @@
-$(document).ready(function() {
-    // Variáveis globais
+﻿$(document).ready(function() {
+    // Inicializar botões de download como desabilitados
+    $('#btnDownloadDocx, #btnDownloadOdt').addClass('disabled').attr('aria-disabled', 'true');
+    // VariÃ¡veis globais
     let arquivosGerados = [];
     
-    // Área de drag and drop para upload
+    // Ãrea de drag and drop para upload
     $('.file-drop-area').on('dragover', function(e) {
         e.preventDefault();
         $(this).addClass('is-active');
@@ -39,7 +41,7 @@ $(document).ready(function() {
         }
     }
     
-    // Processar petição
+    // Processar petiÃ§Ã£o
     $('#btnProcessar').on('click', function() {
         const fileInput = $('.file-input')[0];
         if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
@@ -80,7 +82,7 @@ $(document).ready(function() {
                     });
                 }
                 
-                // Armazenar informações sobre arquivos gerados
+                // Armazenar informaÃ§Ãµes sobre arquivos gerados
                 if (response.arquivos && Array.isArray(response.arquivos)) {
                     arquivosGerados = response.arquivos;
                 }
@@ -104,17 +106,17 @@ $(document).ready(function() {
         });
     });
     
-    // Usar resumo na peça
+    // Usar resumo na peÃ§a
     $('#btnUsarResumo').on('click', function() {
         const resumo = $('#resumoPeticao').val();
         if (resumo) {
             $('#preVisualizacaoMinuta').val(resumo);
         } else {
-            alert('O resumo da petição está vazio.');
+            alert('O resumo da petiÃ§Ã£o estÃ¡ vazio.');
         }
     });
     
-    // Aplicar resultados da análise
+    // Aplicar resultados da anÃ¡lise
     $('#btnAplicarResultados').on('click', function() {
         const resumo = $('#resultadoResumo').text();
         if (resumo) {
@@ -156,19 +158,19 @@ $(document).ready(function() {
         if (arquivosGerados && arquivosGerados.includes(formato)) {
             window.location.href = `/download/${formato}`;
         } else {
-            alert(`Arquivo no formato ${formato} não está disponível. Processe uma petição primeiro.`);
+            alert(`Arquivo no formato ${formato} nÃ£o estÃ¡ disponÃ­vel. Processe uma petiÃ§Ã£o primeiro.`);
         }
     });
     
-    // Salvar rascunho (simulação)
+    // Salvar rascunho (simulaÃ§Ã£o)
     $('#btnSalvarRascunho').on('click', function() {
         const textoMinuta = $('#preVisualizacaoMinuta').val();
         if (textoMinuta) {
             // Aqui seria implementada a funcionalidade de salvar no servidor
-            // Como é uma simulação, apenas mostraremos um alerta
+            // Como Ã© uma simulaÃ§Ã£o, apenas mostraremos um alerta
             alert('Rascunho salvo com sucesso!');
         } else {
-            alert('Não há conteúdo para salvar.');
+            alert('NÃ£o hÃ¡ conteÃºdo para salvar.');
         }
     });
     
@@ -185,12 +187,12 @@ $(document).ready(function() {
         }
     });
     
-    // Toggle da sidebar em dispositivos móveis
+    // Toggle da sidebar em dispositivos mÃ³veis
     $('#btnToggleSidebar').on('click', function() {
         $('.sidebar').toggleClass('active');
     });
     
-    // Fechar sidebar ao clicar fora em dispositivos móveis
+    // Fechar sidebar ao clicar fora em dispositivos mÃ³veis
     $(document).on('click', function(e) {
         if ($('.sidebar').hasClass('active') && 
             !$(e.target).closest('.sidebar').length && 
