@@ -1,42 +1,35 @@
-#  src/peticionador/agentes/agente_gemini.py
+from peticionador.servicos.integrador_gemini import ClienteGemini
 
-from typing import Dict
-
-
-def verificar_extracao_gemini(
-    texto_pagina: str, dados_extraidos: Dict[str, str]
-) -> Dict[str, str]:
+def verificar_extracao_gemini(texto: str, dados_extraidos: dict) -> dict:
     """
-    MOCK: Verifica e corrige os dados extraídos, simulando uma resposta do Gemini.
+    Usa Gemini para validar ou complementar informações extraídas da petição.
 
     Parâmetros:
-        texto_pagina (str): Primeira página da petição.
-        dados_extraidos (dict): Saída original do RoBERTa.
+        texto (str): Texto base da petição (ex: primeira página).
+        dados_extraidos (dict): Dados previamente extraídos por RoBERTa.
 
     Retorna:
-        dict: Dicionário validado (ou corrigido) com 'recorrente' e 'tipo_recurso'.
+        dict: Novo dicionário de dados, complementado ou corrigido.
     """
-    #  Simula uma verificação e correção
-    if "agravo" in texto_pagina.lower():
-        tipo = "Agravo"
-    elif "apelação" in texto_pagina.lower():
-        tipo = "Apelação"
-    elif "mandado de segurança" in texto_pagina.lower():
-        tipo = "Mandado de Segurança"
-    else:
-        tipo = dados_extraidos.get("tipo_recurso", "Indeterminado")
+    cliente = ClienteGemini()
 
-    if "recorrente" in texto_pagina.lower():
-        nome_linha = next(
-            (
-                linha
-                for linha in texto_pagina.splitlines()
-                if "recorrente" in linha.lower()
-            ),
-            "",
-        )
-        nome = nome_linha.split(":")[-1].strip()
-    else:
-        nome = dados_extraidos.get("recorrente", "Desconhecido")
+    # Prepare o prompt
+    prompt = (
+        "Você é um assistente jurídico. Com base no trecho abaixo, verifique e complemente "
+        "as seguintes informações:\n\n"
+        f"{texto}\n\n"
+        f"Dados atuais extraídos:\n{dados_extraidos}\n\n"
+        "Retorne apenas os dados relevantes no formato JSON:"
+    )
 
-    return {"recorrente": nome, "tipo_recurso": tipo}
+    resposta = cliente.resumir(prompt)
+
+    try:
+        import json
+        dados_corrigidos = json.loads(resposta)
+        if isinstance(dados_corrigidos, dict):
+            return dados_corrigidos
+    except Exception as e:
+        print(f"[ERRO PARSE GEMINI] {e} — resposta recebida:\n{resposta}")
+
+    return dados_extraidos  # fallback: retorna os dados originais

@@ -10,8 +10,8 @@ def mock_resumidor(monkeypatch):
         return "Resumo técnico gerado para o texto de entrada."
 
     monkeypatch.setattr(
-        "peticionador.agentes.agente_resumidor.gerar_resumo_gemini", resumo_fake
-    )
+        "peticionador.agentes.agente_resumidor.gerar_resumo_tecnico", resumo_fake
+)
 
 
 def test_resumo_mockado_completo(mock_resumidor):

@@ -1,4 +1,4 @@
-#  src/peticionador/servicos/servico_gerador_documento.py
+#  src/peticionador/servicos/gerador_documento.py
 
 import os
 from datetime import datetime
