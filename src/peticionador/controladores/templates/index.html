@@ -1,134 +1,43 @@
 ﻿{% extends "layout.html" %}
 
-<style>
-
-    /* Estilo para o botão Procurar... */
-    .custom-file-input::file-selector-button {
-        background-color: #2f855a;
-        color: white;
-        border: 0;
-        border-radius: 5px;
-        padding: 8px 15px;
-        margin-right: 10px;
-        cursor: pointer;
-        font-size: 14px;
-        transition: background-color 0.3s;
-    }
-    
-    .custom-file-input::file-selector-button:hover {
-        background-color: #276749;
-    }
-    
-    /* Ocultar o texto padrão do input file */
-    .custom-file-input {
-        color: transparent;
-    }
-    
-    /* Centralizar a área de upload */
-.file-drop-area {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 120px;
-    border: 2px dashed #cbd5e0;
-    border-radius: 10px;
-    background-color: #edf2f7;
-    transition: 0.2s;
-    cursor: pointer;
-    padding: 0; /* Removendo padding que pode causar desalinhamento */
-}
-
-.file-drop-area:hover, .file-drop-area.is-active {
-    border-color: #63b3ed;
-    background-color: #e6f7ff;
-}
-
-.file-message {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 100%; /* Importante: largura total para texto centralizado */
-    text-align: center;
-    color: #718096;
-    font-size: 16px;
-    font-weight: 500;
-    margin: 0; /* Remover qualquer margem */
-    padding: 0 15px; /* Padding horizontal para evitar que o texto encoste nas bordas */
-}
-
-.file-input {
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: 100%;
-    cursor: pointer;
-    opacity: 0;
-}
-    
-    .file-message {
-        color: #718096;
-        font-size: 16px;
-        font-weight: 500;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 100%;
-        text-align: center;
-    }
-    
-    .upload-area {
-        text-align: center;
-    }
-</style>
-
 {% block content %}
 <h1 class="mt-4 mb-4">Peticionador Jurídico</h1>
 
 <div class="row">
     <div class="col-md-9">
-        <!-- Área principal -->
+        <!-- Upload -->
         <div class="card mb-4">
-            <div class="card-header">
-                <h5>Upload do Arquivo</h5>
-            </div>
+            <div class="card-header"><h5>Upload do Arquivo</h5></div>
             <div class="card-body upload-area">
-                <form id="uploadForm" enctype="multipart/form-data" method="post" action="/processar">
+                <form id="uploadForm" enctype="multipart/form-data">
                     <div class="file-drop-area">
                         <span class="file-message">Arraste um arquivo ou clique para selecionar</span>
-                        <input class="file-input custom-file-input" type="file" name="arquivo" accept=".pdf" id="customFile" style="opacity:0; position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                        <input class="file-input custom-file-input" type="file" name="arquivo" accept=".pdf" id="customFile" />
                     </div>
-                    <button type="submit" id="btnProcessar" class="btn btn-primary mt-3">Processar Petição</button>
+                    <!-- Botão fora do form, para evitar submit padrão -->
+                <button type="submit" id="btnProcessar" class="btn btn-primary mt-3">Processar Petição</button>
                 </form>
+                
             </div>
         </div>
 
+        <!-- Resumo -->
         <div class="card mb-4">
-            <div class="card-header">
-                <h5>Resumo da Petição</h5>
-            </div>
+            <div class="card-header"><h5>Resumo da Petição</h5></div>
             <div class="card-body">
-                <div class="resumo-area">
-                    <textarea id="resumoPeticao" class="form-control" rows="5" readonly></textarea>
-                </div>
+                <textarea id="resumoPeticao" class="form-control" rows="5" readonly></textarea>
                 <div class="mt-3">
-                    <button id="btnUsarResumo" class="btn btn-primary">Usar Resumo na Peça</button>
+                    <button id="btnVisualizarDocx" class="btn btn-secondary">Visualizar .docx</button>
+                    <div id="previewDocx" class="mt-3 p-3 border" style="background:#fff; min-height:200px;"></div>
                 </div>
             </div>
         </div>
 
+        <!-- Minuta -->
         <div class="card mb-4">
-            <div class="card-header">
-                <h5>Pré-visualização da minuta</h5>
-            </div>
+            <div class="card-header"><h5>Pré-visualização da minuta</h5></div>
             <div class="card-body">
-                <div class="minuta-area">
-                    <textarea id="preVisualizacaoMinuta" class="form-control" rows="10"></textarea>
-                </div>
+                <textarea id="preVisualizacaoMinuta" class="form-control" rows="10"></textarea>
                 <div class="d-flex justify-content-between mt-3">
                     <button id="btnSalvarRascunho" class="btn btn-primary">Salvar Rascunho</button>
                     <div>
@@ -140,16 +49,12 @@
         </div>
     </div>
 
+    <!-- Sidebar -->
     <div class="col-md-3">
-        <!-- Sidebar -->
         <div class="card mb-4">
-            <div class="card-header">
-                <h5>Modelos Reutilizáveis</h5>
-            </div>
+            <div class="card-header"><h5>Modelos Reutilizáveis</h5></div>
             <div class="card-body">
-                <div class="input-group mb-3">
-                    <input type="text" class="form-control" placeholder="Buscar modelo...">
-                </div>
+                <div class="input-group mb-3"><input type="text" class="form-control" placeholder="Buscar modelo..."></div>
                 <div class="modelo-buttons">
                     <button class="btn btn-primary btn-block mb-2">Contestação</button>
                     <button class="btn btn-primary btn-block mb-2">Recurso</button>
@@ -160,13 +65,9 @@
         </div>
 
         <div class="card">
-            <div class="card-header">
-                <h5>Seleção de Teses</h5>
-            </div>
+            <div class="card-header"><h5>Seleção de Teses</h5></div>
             <div class="card-body">
-                <div class="input-group mb-3">
-                    <input type="text" class="form-control" placeholder="Buscar tese...">
-                </div>
+                <div class="input-group mb-3"><input type="text" class="form-control" placeholder="Buscar tese..."></div>
                 <div class="teses-container">
                     {% for tese in teses %}
                     <button class="btn btn-info btn-block tese-button mb-2">{{ tese }}</button>
@@ -179,58 +80,155 @@
 
 <!-- Modal de carregamento -->
 <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-body text-center p-4">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="sr-only">Carregando...</span>
-                </div>
-                <p class="mt-3">Processando petição, aguarde...</p>
-            </div>
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <div class="modal-body text-center p-4">
+            <div class="spinner-border text-primary" role="status"><span class="sr-only">Carregando...</span></div>
+            <p class="mt-3">Processando petição, aguarde...</p>
         </div>
-    </div>
+    </div></div>
 </div>
 
 <!-- Modal de resultados -->
 <div class="modal fade" id="resultadosModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Análise Completa</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <p><strong>Recorrente:</strong> <span id="resultadoRecorrente"></span></p>
-                    </div>
-                    <div class="col-md-6">
-                        <p><strong>Tipo de Recurso:</strong> <span id="resultadoTipoRecurso"></span></p>
-                    </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-md-12">
-                        <h6>Resumo Técnico:</h6>
-                        <div class="border p-2 mb-3" id="resultadoResumo"></div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <h6>Teses e Argumentos Aplicáveis:</h6>
-                        <ul id="resultadoArgumentos"></ul>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
-                <button type="button" class="btn btn-primary" id="btnAplicarResultados">Aplicar</button>
-            </div>
+    <div class="modal-dialog modal-lg"><div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Análise Completa</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         </div>
-    </div>
+        <div class="modal-body">
+            <div class="row"><div class="col-md-6"><p><strong>Recorrente:</strong> <span id="resultadoRecorrente"></span></p></div>
+            <div class="col-md-6"><p><strong>Tipo de Recurso:</strong> <span id="resultadoTipoRecurso"></span></p></div></div>
+            <div class="row mt-2"><div class="col-md-12"><h6>Resumo Técnico:</h6><div class="border p-2 mb-3" id="resultadoResumo"></div></div></div>
+            <div class="row"><div class="col-md-12"><h6>Teses e Argumentos Aplicáveis:</h6><ul id="resultadoArgumentos"></ul></div></div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            <button type="button" class="btn btn-primary" id="btnAplicarResultados">Aplicar</button>
+        </div>
+    </div></div>
 </div>
 {% endblock %}
 
+<script>
+
+console.log('Script carregado');
+
+return;
+</script>
+
+<!-- Scripts obrigatórios -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
+<script>
 
 
+
+
+$(document).ready(function () {
+    let arquivosGerados = [];
+    console.log('Processar botão clicado'); 
+    function updateFileMessage(fileName) {
+        $('.file-message').text(fileName ? `Arquivo selecionado: ${fileName}` : 'Arraste um arquivo ou clique para selecionar');
+    }
+
+    // Processar
+    $('#btnProcessar').on('click', function (e) {
+        e.preventDefault();
+
+        console.log('Processar botão clicado');
+        return
+        const fileInput = $('.file-input')[0];
+        if (!fileInput?.files?.length) return alert('Por favor, selecione um arquivo PDF primeiro.');
+
+        const formData = new FormData();
+        formData.append('arquivo', fileInput.files[0]);
+
+        $('#loadingModal').modal('show');
+        $.ajax({
+            url: '/processar',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                $('#loadingModal').modal('hide');
+                $('#resultadoRecorrente').text(response.recorrente || '');
+                $('#resultadoTipoRecurso').text(response.tipo_recurso || '');
+                $('#resultadoResumo').text(response.resumo || '');
+                $('#resumoPeticao').val(response.resumo || '');
+
+                const argumentosList = $('#resultadoArgumentos');
+                argumentosList.empty();
+                (response.argumentos || []).forEach(arg => {
+                    if (arg) argumentosList.append(`<li>${arg}</li>`);
+                });
+
+                arquivosGerados = response.arquivos || [];
+                $('#btnDownloadDocx, #btnDownloadOdt').removeClass('disabled').attr('aria-disabled', 'false');
+                $('#resultadosModal').modal('show');
+            },
+            error: function (xhr) {
+                $('#loadingModal').modal('hide');
+                const erro = xhr?.responseJSON?.erro || 'Erro ao processar o arquivo.';
+                $('#mensagemErroAjax').text(erro);
+                $('#alertaErro').fadeIn().addClass('show');
+                setTimeout(() => $('#alertaErro').fadeOut().removeClass('show'), 5000);
+            }
+        });
+    });
+
+    // Visualizar .docx
+    $('#btnVisualizarDocx').on('click', function () {
+        if (!arquivosGerados.includes('docx')) {
+            return alert('O arquivo .docx ainda não foi gerado. Processe uma petição primeiro.');
+        }
+
+        fetch('/download/docx')
+            .then(res => res.blob())
+            .then(blob => {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    mammoth.convertToHtml({ arrayBuffer: e.target.result })
+                        .then(result => {
+                            $('#previewDocx').html(result.value);
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            alert('Erro ao exibir .docx');
+                        });
+                };
+                reader.readAsArrayBuffer(blob);
+            });
+    });
+
+    $('#btnUsarResumo').on('click', function () {
+        const resumo = $('#resumoPeticao').val();
+        $('#preVisualizacaoMinuta').val(resumo || '');
+    });
+
+    $('#btnAplicarResultados').on('click', function () {
+        const resumo = $('#resultadoResumo').text();
+        $('#resumoPeticao').val(resumo);
+        $('#preVisualizacaoMinuta').val(resumo);
+        $('#resultadosModal').modal('hide');
+    });
+
+    $('#btnSalvarRascunho').on('click', function () {
+        const texto = $('#preVisualizacaoMinuta').val();
+        alert(texto ? 'Rascunho salvo com sucesso!' : 'Não há conteúdo para salvar.');
+    });
+
+    $(document).on('click', '.tese-button', function () {
+        const tese = $(this).data('tese');
+        const textoAtual = $('#preVisualizacaoMinuta').val() || '';
+        $.post('/aplicar_tese', JSON.stringify({ tese, texto_atual: textoAtual }), function (resp) {
+            if (resp?.texto) $('#preVisualizacaoMinuta').val(resp.texto);
+        }, 'json').fail(() => alert('Erro ao aplicar tese.'));
+    });
+});
+
+
+</script>
