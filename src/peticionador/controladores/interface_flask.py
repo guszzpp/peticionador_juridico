@@ -238,6 +238,7 @@ def download(tipo_arquivo: str):
     logger = app.logger
     logger.info(f"Requisição de download para tipo: {tipo_arquivo}")
     ultima_execucao = app.config.get("ULTIMO_PROCESSAMENTO")
+
     if not ultima_execucao:
         logger.warning("Tentativa de download sem processamento recente.")
         flash("Nenhum processamento recente encontrado para download.", "warning")
@@ -250,14 +251,20 @@ def download(tipo_arquivo: str):
         return f"Erro: Tipo {tipo_arquivo} não disponível.", 404
 
     caminho_relativo_app_config = arquivos_gerados[tipo_arquivo]
-    # RAIZ_PROJETO é onde os 'arquivos_gerados' são relativos, conforme controlador_principal
-    caminho_absoluto = RAIZ_PROJETO / caminho_relativo_app_config 
-    
+    caminho_absoluto = RAIZ_PROJETO / caminho_relativo_app_config
+
+    # ⚠️ Preferência por .txt se estiver presente e tiver sido exibido no visualizador
+    if caminho_absoluto.suffix == ".odt":
+        caminho_txt_alternativo = caminho_absoluto.with_suffix(".txt")
+        if caminho_txt_alternativo.exists():
+            logger.info(f"Substituindo download de .odt por .txt correspondente: {caminho_txt_alternativo.name}")
+            caminho_absoluto = caminho_txt_alternativo
+
     if not caminho_absoluto.exists():
-        logger.error(f"Arquivo para download não encontrado no caminho absoluto: {caminho_absoluto}")
+        logger.error(f"Arquivo para download não encontrado: {caminho_absoluto}")
         flash(f"Erro: Arquivo '{caminho_absoluto.name}' não encontrado no servidor.", "danger")
         return f"Erro: Arquivo '{caminho_absoluto.name}' não encontrado.", 404
-    
+
     logger.info(f"Enviando arquivo para download: {caminho_absoluto}")
     return send_from_directory(
         directory=caminho_absoluto.parent,
@@ -326,14 +333,13 @@ def obter_conteudo_modelo_endpoint():
 
 @app.route("/gerenciar_modelos")
 def gerenciar_modelos_page():
-    # ... (código da rota gerenciar_modelos_page como na sua última versão,
-    #      garantindo que 'id' para peças/teses de usuário seja o nome do arquivo .odt ou .txt
-    #      e que 'formato_original' seja adicionado) ...
     logger = app.logger
     logger.info("Acessando rota /gerenciar_modelos")
+
     modelos_pecas = []
     modelos_teses_lista = []
-    
+
+    # Modelos do sistema
     for nome_arq_sistema_txt in MODELOS_SISTEMA_NOMES:
         caminho_txt = PASTA_MODELOS_BASE / nome_arq_sistema_txt
         if caminho_txt.is_file():
@@ -341,59 +347,71 @@ def gerenciar_modelos_page():
             odt_correspondente = PASTA_MODELOS_BASE / f"{nome_base}.odt"
             formato_orig = "odt" if odt_correspondente.exists() else "txt"
             modelos_pecas.append({
-                "id": nome_arq_sistema_txt, "nome": f"{nome_arq_sistema_txt} (Sistema, original: {formato_orig.upper()})",
+                "id": nome_arq_sistema_txt,
+                "nome": f"{nome_arq_sistema_txt} (Sistema, original: {formato_orig.upper()})",
                 "data_modificacao": datetime.fromtimestamp(caminho_txt.stat().st_mtime).strftime("%d/%m/%Y %H:%M"),
                 "editavel": True, "deletavel": False, "eh_sistema": True, "formato_original": formato_orig,
                 "nome_arquivo_original_odt_ou_txt": odt_correspondente.name if formato_orig == 'odt' else nome_arq_sistema_txt
             })
 
+    # Modelos de usuário (peças e teses)
     for pasta_usuario_tipo, tipo_item in [(PASTA_PECAS_USUARIO, "peça"), (PASTA_TESES_USUARIO, "tese")]:
         if pasta_usuario_tipo.exists():
             for nome_arquivo_item in os.listdir(pasta_usuario_tipo):
                 caminho_item = pasta_usuario_tipo / nome_arquivo_item
                 if caminho_item.is_file():
-                    formato_original_item = caminho_item.suffix[1:].lower() # odt ou txt
-                    id_item = nome_arquivo_item # O ID é o nome do arquivo .odt ou .txt
+                    formato_original_item = caminho_item.suffix[1:].lower()
+                    id_item = nome_arquivo_item
                     nome_exibicao_item = nome_arquivo_item
-                    
+
                     conteudo_completo_item = ""
-                    arquivo_txt_associado = pasta_usuario_tipo / (nome_arquivo_item[:-4] + ".txt" if formato_original_item == "odt" else nome_arquivo_item)
+                    arquivo_txt_associado = (
+                        pasta_usuario_tipo / (nome_arquivo_item[:-4] + ".txt" if formato_original_item == "odt" else nome_arquivo_item)
+                    )
                     if arquivo_txt_associado.exists():
                         try:
                             with open(arquivo_txt_associado, "r", encoding="utf-8") as f_txt:
                                 conteudo_completo_item = f_txt.read().strip()
                         except Exception as e_read:
                             logger.error(f"Erro ao ler conteúdo de {arquivo_txt_associado} para {nome_arquivo_item}: {e_read}")
-                    
+
                     item_data = {
-                        "id": id_item, "nome": nome_exibicao_item, "nome_arquivo": id_item, # nome_arquivo é o mesmo que id
+                        "id": id_item,
+                        "nome": nome_exibicao_item,
+                        "nome_arquivo": id_item,
                         "data_modificacao": datetime.fromtimestamp(caminho_item.stat().st_mtime).strftime("%d/%m/%Y %H:%M"),
-                        "editavel": True, "deletavel": True, "eh_sistema": False, "formato_original": formato_original_item,
+                        "editavel": True,
+                        "deletavel": True,
+                        "eh_sistema": False,
+                        "formato_original": formato_original_item,
                         "conteudo_completo": conteudo_completo_item
                     }
-                    if tipo_item == "peça":
-                        if id_item not in MODELOS_SISTEMA_NOMES: modelos_pecas.append(item_data)
-                    else: # tese
-                        item_data["eh_predefinida"] = False # Teses de usuário não são predefinidas
-                        modelos_teses_lista.append(item_data) # Precisa definir modelos_teses_lista antes
-    
-    # Adicionar teses predefinidas (se houver)
-    modelos_teses_lista = []
-    for idx, texto_tese_predef in enumerate(TESES_DISPONIVEIS): # TESES_DISPONIVEIS é []
-        id_tese_predefinida_sys = f"tese_predefinida_sistema_{idx}"
-        modelos_teses_lista.append({
-            "id": id_tese_predefinida_sys, "nome": texto_tese_predef, "nome_arquivo": id_tese_predefinida_sys,
-            "conteudo_completo": texto_tese_predef, "data_modificacao": "N/A",
-            "editavel": True, "deletavel": False, "eh_predefinida": True, "formato_original": "interno"
-        })
-    # Adiciona as teses de usuário à lista final
-    if 'modelos_teses_lista' in locals(): # Verifica se a lista foi criada
-      modelos_teses_lista.extend(modelos_teses_lista)
 
+                    if tipo_item == "peça":
+                        if id_item not in MODELOS_SISTEMA_NOMES:
+                            modelos_pecas.append(item_data)
+                    else:  # tese
+                        item_data["eh_predefinida"] = False
+                        modelos_teses_lista.append(item_data)
+
+    # Teses predefinidas
+    for idx, texto_tese_predef in enumerate(TESES_DISPONIVEIS):
+        modelos_teses_lista.append({
+            "id": f"tese_predefinida_sistema_{idx}",
+            "nome": texto_tese_predef,
+            "nome_arquivo": f"tese_predefinida_sistema_{idx}",
+            "conteudo_completo": texto_tese_predef,
+            "data_modificacao": "N/A",
+            "editavel": True,
+            "deletavel": False,
+            "eh_predefinida": True,
+            "formato_original": "interno"
+        })
 
     logger.debug(f"Modelos de peças para gerenciar: {len(modelos_pecas)}")
     logger.debug(f"Modelos de teses para gerenciar: {len(modelos_teses_lista)}")
     return render_template("gerenciar_modelos.html", modelos_pecas=modelos_pecas, modelos_teses=modelos_teses_lista, title="Gerenciar modelos e teses")
+
 
 
 @app.route('/salvar_modelo', methods=['POST'])
