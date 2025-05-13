@@ -250,15 +250,14 @@ def download(tipo_arquivo: str):
         flash(f"Tipo de arquivo '{tipo_arquivo}' não está disponível para download.", "warning")
         return f"Erro: Tipo {tipo_arquivo} não disponível.", 404
 
-    caminho_relativo_app_config = arquivos_gerados[tipo_arquivo]
-    caminho_absoluto = RAIZ_PROJETO / caminho_relativo_app_config
+    caminho_relativo = arquivos_gerados[tipo_arquivo]
+    caminho_absoluto = RAIZ_PROJETO / caminho_relativo
 
-    # ⚠️ Preferência por .txt se estiver presente e tiver sido exibido no visualizador
-    if caminho_absoluto.suffix == ".odt":
-        caminho_txt_alternativo = caminho_absoluto.with_suffix(".txt")
-        if caminho_txt_alternativo.exists():
-            logger.info(f"Substituindo download de .odt por .txt correspondente: {caminho_txt_alternativo.name}")
-            caminho_absoluto = caminho_txt_alternativo
+    # Tenta substituir por .txt se existir e for mais representativo
+    caminho_txt = caminho_absoluto.with_suffix('.txt')
+    if caminho_txt.exists() and tipo_arquivo == "minuta_gerada":
+        logger.info(f"Preferindo arquivo .txt da IA para download: {caminho_txt.name}")
+        caminho_absoluto = caminho_txt
 
     if not caminho_absoluto.exists():
         logger.error(f"Arquivo para download não encontrado: {caminho_absoluto}")
@@ -271,6 +270,7 @@ def download(tipo_arquivo: str):
         path=caminho_absoluto.name,
         as_attachment=True
     )
+
 
 @app.route("/obter_conteudo_modelo", methods=["GET"])
 def obter_conteudo_modelo_endpoint():
