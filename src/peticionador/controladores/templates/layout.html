@@ -45,8 +45,10 @@
 </head>
 <body>
     <div id="sidebarMenu" class="sidebar"> <a href="javascript:void(0)" class="closebtn" id="btnCloseSidebar">&times;</a>
-        <a href="#" id="linkGerenciarModelos">Gerenciar Modelos</a>
-        <a href="#" id="linkRecarregarTrabalhos">Recarregar Trabalhos</a>
+            <a href="{{ url_for('index') }}" id="linkPaginaInicial">Página inicial</a>
+            <a href="#" id="linkGerenciarModelos">Gerenciar modelos e teses</a> {# Mantendo a alteração de nome que você já fez #}
+            <a href="#" id="linkRecarregarTrabalhos">Recarregar Trabalhos</a>
+            </div>
         </div>
 
     <div class="menu-button-container">

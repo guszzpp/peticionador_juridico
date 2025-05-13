@@ -1,37 +1,37 @@
 ﻿{% extends "layout.html" %}
 
 {% block content %}
-<h1 class="page-title">Peticionador Jurídico Inteligente</h1>
+<h1 class="page-title">AutoLex</h1>
 
 <div class="row">
     <div class="col-md-9">
         <div class="card mb-4">
-            <div class="card-header"><h5>1. Upload do Arquivo da Petição/Recurso</h5></div>
+            <div class="card-header"><h5>1. Upload do recurso</h5></div>
             <div class="card-body upload-area">
                 <form id="uploadForm" enctype="multipart/form-data">
                     <div class="file-drop-area">
                         <span class="file-message">Arraste um arquivo PDF ou clique para selecionar</span>
                         <input class="file-input" type="file" name="arquivo" accept=".pdf" id="customFile" style="opacity: 0; position: absolute; width: 100%; height: 100%; cursor: pointer;" />
                     </div>
-                    <button type="button" id="btnProcessar" class="btn btn-primary mt-3">Analisar e Processar Petição</button>
+                    <button type="button" id="btnProcessar" class="btn btn-primary mt-3">Analisar e processar o recurso</button>
                     <button type="button" id="btnReabrirAnalise" class="btn btn-info mt-3 ml-2" style="display: none;">Reabrir Última Análise</button>
                 </form>
             </div>
         </div>
 
         <div class="card mb-4">
-            <div class="card-header"><h5>2. Resumo Técnico da Petição (Gerado pela IA)</h5></div>
+            <div class="card-header"><h5>2. Resumo técnico do recurso (gerado por IA)</h5></div>
             <div class="card-body">
                 <textarea id="resumoPeticao" class="form-control" rows="6" readonly placeholder="O resumo técnico da petição do recorrente aparecerá aqui após o processamento..."></textarea>
                 </div>
         </div>
 
         <div class="card mb-4">
-            <div class="card-header"><h5>3. Minuta das Contrarrazões (Editável)</h5></div>
+            <div class="card-header"><h5>3. Minuta das contrarrazões</h5></div>
             <div class="card-body">
                 <textarea id="preVisualizacaoMinuta" class="form-control" rows="15" placeholder="A minuta das contrarrazões será construída aqui com base no resumo, teses selecionadas e modelos..."></textarea>
                 <div class="d-flex justify-content-between mt-3">
-                    <button type="button" id="btnSalvarRascunho" class="btn btn-primary">Salvar Rascunho (Simulado)</button>
+                    <button type="button" id="btnSalvarRascunho" class="btn btn-primary">Salvar rascunho (simulado)</button>
                     <div>
                         <a href="#" id="btnDownloadDocx" class="btn btn-success disabled" aria-disabled="true" role="button">Download Word (.docx)</a>
                         <a href="#" id="btnDownloadOdt" class="btn btn-success ml-2 disabled" aria-disabled="true" role="button">Download LibreOffice (.odt)</a>
@@ -43,7 +43,7 @@
 
     <div class="col-md-3">
         <div class="card mb-4">
-            <div class="card-header"><h5>Modelos/Teses Prontas</h5></div>
+            <div class="card-header"><h5>Teses</h5></div>
             <div class="card-body">
                 <div class="input-group mb-3">
                     <input type="text" class="form-control" id="buscarModelosTeses" placeholder="Buscar...">
@@ -63,7 +63,7 @@
             </div>
         </div>
         <div class="card mt-4"> {# Adiciona um pouco de margem em cima #}
-            <div class="card-header"><h5>Modelos/Teses Aplicadas na Minuta</h5></div>
+            <div class="card-header"><h5>Teses aplicadas na minuta</h5></div>
             <div class="card-body" id="modelosTesesAplicadasContainer" style="max-height: 200px; overflow-y: auto;">
                 <p class="text-muted text-center" id="placeholderTesesAplicadas"><i>Nenhum modelo/tese aplicado ainda.</i></p>
                 </div>

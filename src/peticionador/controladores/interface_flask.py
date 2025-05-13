@@ -193,7 +193,7 @@ def gerenciar_modelos_page():
         "gerenciar_modelos.html",
         modelos_pecas=modelos_pecas,
         modelos_teses=modelos_teses,
-        title="Gerenciar Modelos e Teses"
+        title="Gerenciar modelos e teses"
     )
 
 def extrair_texto_de_arquivo(caminho_arquivo_upload: Path) -> str:

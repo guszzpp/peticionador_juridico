@@ -3,7 +3,7 @@
 {% block content %}
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Página Inicial</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Página inicial</a></li>
         <li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
     </ol>
 </nav>
@@ -16,13 +16,13 @@
             <button type="button" class="btn btn-sm btn-outline-secondary">Filtrar</button>
         </div>
         <button type="button" class="btn btn-sm btn-success" data-toggle="modal" data-target="#modalCriarModelo">
-            + Criar Modelo
+            + Criar modelo
         </button>
     </div>
 </div>
 
 {# Seção para Modelos de Peças (ex: contrarrazões_re.txt) #}
-<h5 class="mt-4">Modelos de Peças Completas</h5>
+<h5 class="mt-4">Modelos de peças completas</h5>
 <div class="table-responsive">
     <table class="table table-striped table-sm">
         <thead>
@@ -60,13 +60,13 @@
 </div>
 
 {# Seção para Modelos de Teses/Argumentos (textos menores) #}
-<h5 class="mt-5">Modelos de Teses/Argumentos Avulsos</h5>
+<h5 class="mt-5">Modelos de teses</h5>
 <div class="table-responsive">
     <table class="table table-striped table-sm">
         <thead>
             <tr>
                 <th><input type="checkbox" id="selecionarTodosTeses"></th>
-                <th>Conteúdo da Tese/Argumento <i class="fas fa-sort"></i></th>
+                <th>Conteúdo<i class="fas fa-sort"></i></th>
                 <th>Tipo <i class="fas fa-sort"></i></th>
                 <th>Ações</th>
             </tr>
@@ -95,7 +95,7 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalCriarModeloLabel">Criar/Editar Modelo</h5>
+                <h5 class="modal-title" id="modalCriarModeloLabel">Criar/Editar modelo</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -104,23 +104,22 @@
                 <form id="formModelo">
                     <input type="hidden" id="modeloId">
                     <div class="form-group">
-                        <label for="modeloNome">Nome do Modelo/Tese:</label>
+                        <label for="modeloNome">Nome do modelo/tese:</label>
                         <input type="text" class="form-control" id="modeloNome" required>
                     </div>
                     <div class="form-group">
                         <label for="modeloTipo">Tipo:</label>
                         <select class="form-control" id="modeloTipo">
-                            <option value="peca">Modelo de Peça (.docx, .odt, .txt)</option>
-                            <option value="tese">Tese/Argumento (Texto)</option>
+                            <option value="peca">Modelo de peça</option>
+                            <option value="tese">Tese/Argumento</option>
                         </select>
                     </div>
                     <div class="form-group" id="grupoUploadArquivo">
-                        <label for="modeloArquivo">Carregar Arquivo (.docx, .odt, .txt):</label>
-                        <input type="file" class="form-control-file" id="modeloArquivo" accept=".docx,.odt,.txt">
-                        <small class="form-text text-muted">Apenas para "Modelo de Peça". O conteúdo será extraído como texto.</small>
+                        <label for="modeloArquivo">Carregar arquivo (.docx, .odt):</label>
+                        <input type="file" class="form-control-file" id="modeloArquivo" accept=".docx,.odt,.txt">                        
                     </div>
                     <div class="form-group" id="grupoConteudoTexto">
-                        <label for="modeloConteudo">Conteúdo do Texto (para Teses ou edição de Peças):</label>
+                        <label for="modeloConteudo">Conteúdo do texto (para Teses ou edição de Peças):</label>
                         <textarea class="form-control" id="modeloConteudo" rows="10"></textarea>
                     </div>
                 </form>

@@ -178,7 +178,7 @@ $(document).ready(function () {
             });
     });
 
-    // --- Handler para o Botão "Salvar Rascunho" (#btnSalvarRascunho) ---
+    // --- Handler para o Botão "Salvar rascunho" (#btnSalvarRascunho) ---
     $('#btnSalvarRascunho').on('click', function () {
         const texto = $('#preVisualizacaoMinuta').val();
         alert(texto ? 'Rascunho salvo com sucesso! (Simulado)' : 'Não há conteúdo para salvar.');
@@ -361,7 +361,7 @@ renderizarBotoesModelosTeses();
 
     $('#linkRecarregarTrabalhos').on('click', function(e) {
         e.preventDefault();
-        alert('Funcionalidade "Recarregar Trabalhos" a ser implementada!');
+        alert('Funcionalidade "Recarregar trabalhos" a ser implementada!');
         sidebar.css('width', '0');
         if (mainContentArea.length) { mainContentArea.css('margin-left', '0');}
     });
