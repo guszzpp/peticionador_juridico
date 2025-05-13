@@ -332,7 +332,6 @@ def gerenciar_modelos_page():
     logger = app.logger
     logger.info("Acessando rota /gerenciar_modelos")
     modelos_pecas = []
-    modelos_teses_lista = []
     
     for nome_arq_sistema_txt in MODELOS_SISTEMA_NOMES:
         caminho_txt = PASTA_MODELOS_BASE / nome_arq_sistema_txt
@@ -378,22 +377,22 @@ def gerenciar_modelos_page():
                         modelos_teses_lista.append(item_data) # Precisa definir modelos_teses_lista antes
     
     # Adicionar teses predefinidas (se houver)
-    modelos_teses_lista = []
+    modelos_teses_lista_final = []
     for idx, texto_tese_predef in enumerate(TESES_DISPONIVEIS): # TESES_DISPONIVEIS é []
         id_tese_predefinida_sys = f"tese_predefinida_sistema_{idx}"
-        modelos_teses_lista.append({
+        modelos_teses_lista_final.append({
             "id": id_tese_predefinida_sys, "nome": texto_tese_predef, "nome_arquivo": id_tese_predefinida_sys,
             "conteudo_completo": texto_tese_predef, "data_modificacao": "N/A",
             "editavel": True, "deletavel": False, "eh_predefinida": True, "formato_original": "interno"
         })
     # Adiciona as teses de usuário à lista final
     if 'modelos_teses_lista' in locals(): # Verifica se a lista foi criada
-      modelos_teses_lista.extend(modelos_teses_lista)
+      modelos_teses_lista_final.extend(modelos_teses_lista)
 
 
     logger.debug(f"Modelos de peças para gerenciar: {len(modelos_pecas)}")
-    logger.debug(f"Modelos de teses para gerenciar: {len(modelos_teses_lista)}")
-    return render_template("gerenciar_modelos.html", modelos_pecas=modelos_pecas, modelos_teses=modelos_teses_lista, title="Gerenciar modelos e teses")
+    logger.debug(f"Modelos de teses para gerenciar: {len(modelos_teses_lista_final)}")
+    return render_template("gerenciar_modelos.html", modelos_pecas=modelos_pecas, modelos_teses=modelos_teses_lista_final, title="Gerenciar modelos e teses")
 
 
 @app.route('/salvar_modelo', methods=['POST'])

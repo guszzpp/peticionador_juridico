@@ -1,0 +1,370 @@
+﻿/* styles.css */
+
+/* Estilos para o Menu Lateral (Sidebar) */
+.sidebar {
+    height: 100%; /* 100% da altura da tela */
+    width: 0; /* Começa escondido (largura 0) */
+    position: fixed; /* Fixo na tela */
+    z-index: 1001; /* Acima do botão de menu, mas pode precisar de ajuste se outros z-index existirem */
+    top: 0;
+    left: 0;
+    background-color: #2f4858; /* Mesma cor do H1, ou a que preferir */
+    overflow-x: hidden; /* Desabilita rolagem horizontal */
+    transition: 0.3s; /* Efeito de transição suave */
+    padding-top: 60px; /* Espaço para o botão de fechar no topo */
+    box-shadow: 3px 0px 10px rgba(0,0,0,0.2);
+  }
+  
+  .sidebar a {
+    padding: 10px 15px;
+    text-decoration: none;
+    font-size: 1.1em;
+    color: #f2f2f2; /* Cor clara para contraste com o fundo escuro */
+    display: block;
+    transition: 0.2s;
+  }
+  
+  .sidebar a:hover {
+    background-color: #276749; /* Cor de hover (similar ao btn-primary:hover) */
+    color: white;
+  }
+  
+  .sidebar .closebtn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 36px;
+    margin-left: 50px;
+    color: #f2f2f2;
+  }
+  .sidebar .closebtn:hover {
+    color: #cbd5e0; /* Um cinza claro para hover no close */
+    background-color: transparent; /* Sem fundo no hover do close */
+  }
+  
+  /* Estilo para empurrar o conteúdo principal quando o menu abrir (opcional) */
+  /* Se quiser que o conteúdo principal seja empurrado, descomente este e o JS correspondente */
+  /*
+  #mainContentPusher {
+    transition: margin-left .3s;
+    padding: 16px;
+  }
+  */
+  
+  /* Adaptação do seu botão de menu container para não ser sobreposto */
+  .menu-button-container {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1002; /* Garante que o botão fique sobre o sidebar quando fechado, mas o sidebar precisa de z-index menor ao abrir */
+  }
+
+/* Estilos gerais */
+body {
+    background-color: #f2f2f2;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.main-content {
+    padding: 15px;
+}
+
+/* Cabeçalho */
+h1 {
+    color: #2f4858;
+    text-align: center;
+    margin: 20px 0;
+    font-weight: 600;
+}
+
+/* Estilos de botão */
+.btn-primary {
+    background-color: #2f855a !important;
+    border-color: #2f855a !important;
+    font-weight: 500;
+}
+
+.btn-primary:hover {
+    background-color: #276749 !important;
+    border-color: #276749 !important;
+}
+
+.btn-success {
+    background-color: #38a169 !important;
+    border-color: #38a169 !important;
+}
+
+.btn-info {
+    background-color: #4299e1 !important;
+    border-color: #4299e1 !important;
+}
+
+.btn-info:hover {
+    background-color: #3182ce !important;
+    border-color: #3182ce !important;
+}
+
+.btn-download {
+    background-color: #319795 !important;
+    border-color: #319795 !important;
+    color: white !important;
+    margin-left: 5px;
+}
+
+.btn-download:hover {
+    background-color: #2c7a7b !important;
+    border-color: #2c7a7b !important;
+    color: white !important;
+}
+
+.download-buttons {
+    display: flex;
+    margin-top: 10px;
+}
+
+/* Cards e containers */
+.card {
+    border-radius: 10px !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05) !important;
+    border: 1px solid #e2e8f0 !important;
+    margin-bottom: 20px !important;
+    background-color: white !important;
+}
+
+.card-header {
+    border-top-left-radius: 10px !important;
+    border-top-right-radius: 10px !important;
+    background-color: #f8f9fa !important;
+    padding: 10px 15px !important;
+    font-weight: 600 !important;
+    color: #2d3748 !important;
+}
+
+.card-header h5 {
+    margin: 0 !important;
+    font-size: 1.1rem !important;
+}
+
+.card-body {
+    padding: 20px !important;
+}
+
+/* Área de upload */
+.upload-area {
+    text-align: center !important;
+}
+
+/* Área de upload */
+.file-drop-area {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 120px;
+    border: 2px dashed #cbd5e0;
+    border-radius: 10px;
+    background-color: #edf2f7;
+    transition: 0.2s;
+    cursor: pointer;
+    padding: 0;
+}
+
+.file-drop-area:hover, .file-drop-area.is-active {
+    border-color: #63b3ed;
+    background-color: #e6f7ff;
+}
+
+.file-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    text-align: center;
+    color: #718096;
+    font-size: 16px;
+    font-weight: 500;
+    margin: 0;
+    padding: 0 15px;
+}
+
+.file-input {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    cursor: pointer;
+    opacity: 0;
+}
+
+/* Áreas de texto */
+textarea.form-control {
+    background-color: white !important;
+    color: #333 !important;
+    border: 1px solid #cbd5e0 !important;
+    border-radius: 8px !important;
+    resize: none !important;
+    width: 100% !important;
+    padding: 10px !important;
+    min-height: 120px !important;
+}
+
+/* Sidebar e painéis laterais */
+.sidebar-card {
+    margin-bottom: 15px !important;
+}
+
+.sidebar-card h5 {
+    font-size: 1rem !important;
+    color: #2d3748 !important;
+    margin-bottom: 10px !important;
+}
+
+.search-box input {
+    border-radius: 6px !important;
+    border: 1px solid #cbd5e0 !important;
+    padding: 8px 12px !important;
+    font-size: 0.9rem !important;
+    margin-bottom: 10px !important;
+    width: 100% !important;
+}
+
+.tese-button {
+    text-align: left !important;
+    font-size: 0.9rem !important;
+    padding: 8px 10px !important;
+    margin-bottom: 8px !important;
+    background-color: #4299e1 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 6px !important;
+    display: block !important;
+    width: 100% !important;
+    transition: background-color 0.2s !important;
+}
+
+.tese-button:hover {
+    background-color: #3182ce !important;
+}
+
+/* Modalss */
+#resultadosModal .modal-dialog {
+    display: flex; /* Permite que o modal-content cresça */
+    flex-direction: column;
+    max-height: calc(100vh - 40px); /* Deixa um pouco de margem da tela */
+    margin: 20px auto; /* Centraliza com margem */
+}
+
+#resultadosModal .modal-content {
+    flex-grow: 1; /* Faz o conteúdo do modal ocupar o espaço disponível no dialog */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Impede que o modal-content tenha sua própria rolagem */
+}
+
+   #resultadosModal .modal-body {
+    max-height: 70vh; /* Aumentei um pouco, ajuste conforme necessário (ex: 400px, 500px) */
+    overflow-y: scroll !important; /* Força a barra de rolagem vertical sempre */
+}
+
+.modal-header {
+    border-top-left-radius: 10px !important;
+    border-top-right-radius: 10px !important;
+    background-color: #f8f9fa !important;
+}
+
+.modal-title {
+    color: #2d3748 !important;
+    font-weight: 600 !important;
+}
+
+/* Loading spinner */
+.spinner-container {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 30px !important;
+}
+
+.spinner-border {
+    width: 3rem !important;
+    height: 3rem !important;
+    color: #2f855a !important;
+}
+
+.loading-text {
+    margin-top: 15px !important;
+    color: #4a5568 !important;
+    font-weight: 500 !important;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .sidebar {
+        margin-top: 20px !important;
+    }
+}
+
+/* Estilo para as tabelas de gerenciamento para tentar um layout mais fixo */
+.table-responsive > .table {
+    /* table-layout: fixed; /* Descomente esta linha para testar um layout fixo */
+    /* width: 100%; */ /* Garante que a tabela ocupe a largura disponível se usar table-layout: fixed */
+}
+
+/* Coluna do Checkbox (opcional, para controle) */
+.coluna-checkbox {
+    width: 5%; /* Ou um valor fixo como 40px */
+    text-align: center;
+}
+
+/* Coluna Nome da Peça */
+.coluna-nome-peca {
+    /* Você pode definir uma largura ou max-width se necessário, mas geralmente é menos problemática */
+    /* min-width: 200px; */
+}
+
+/* Coluna Conteúdo da Tese (mantendo a tentativa anterior, mas podemos ajustar) */
+.coluna-conteudo-tese {
+    max-width: 350px;  /* Tente um valor um pouco menor ou maior */
+    min-width: 200px;  /* Garante que não encolha demais */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* vertical-align: top; /* Garante que o conteúdo comece no topo da célula */
+}
+
+/* Coluna de Data (para dar uma largura consistente) */
+.coluna-data {
+    width: 150px; /* Ou um percentual, ex: 20% */
+    min-width: 130px;
+    /* vertical-align: top; */
+}
+
+/* Coluna de Ações (para dar uma largura consistente e alinhar o conteúdo) */
+.coluna-acoes {
+    width: 100px;  /* Ajuste conforme a quantidade/tamanho dos botões. Ex: 90px para 2 botões. */
+    min-width: 90px;
+    text-align: right; /* Alinha os botões à direita dentro da célula */
+    /* vertical-align: top; */
+}
+
+/* Se os botões dentro da coluna de ações estiverem causando problemas de quebra de linha: */
+.coluna-acoes .btn {
+    white-space: nowrap; /* Impede que o texto do botão quebre */
+    margin-left: 2px; /* Pequeno espaçamento entre botões */
+    margin-right: 2px;
+}
+.coluna-acoes .btn:first-child {
+    margin-left: 0;
+}
+.coluna-acoes .btn:last-child {
+    margin-right: 0;
+}
+
+/* Garante que o ícone não adicione muito padding/margem que afete a largura da célula de dados */
+.table td .far, .table td .fas {
+    margin-right: 5px; /* Ajuste conforme necessário */
+}
