@@ -573,7 +573,6 @@ def excluir_modelo_endpoint():
 
 @app.route('/gerar_peca_com_ia', methods=['POST'])
 def gerar_peca_com_ia_endpoint():
-    # ... (código da rota como na sua última versão, corrigido para usar ultimo_processamento_servidor) ...
     logger = app.logger
     data = request.json
     resumo_tecnico_frontend = data.get('resumo_tecnico')
@@ -585,7 +584,7 @@ def gerar_peca_com_ia_endpoint():
 
     if not resumo_tecnico_frontend or not teses_selecionadas:
         return jsonify({"erro": "Resumo técnico e ao menos uma tese selecionada são necessários."}), 400
-    
+
     ultimo_processamento_servidor = app.config.get("ULTIMO_PROCESSAMENTO")
     dados_estado_servidor = {}
     estrutura_base_servidor = {}
@@ -599,38 +598,39 @@ def gerar_peca_com_ia_endpoint():
 
     resumo_tecnico_para_agente = dados_estado_servidor.get('resumo', resumo_tecnico_frontend)
     tipo_recurso_para_agente = dados_estado_servidor.get('tipo_recurso', tipo_recurso_frontend)
-    
-    tipo_recurso_usado_para_modelo = "REsp" 
+
+    tipo_recurso_usado_para_modelo = "REsp"
     if tipo_recurso_para_agente and tipo_recurso_para_agente != "Indeterminado" and tipo_recurso_para_agente in CAMINHO_MODELOS:
         tipo_recurso_usado_para_modelo = tipo_recurso_para_agente
     else:
         logger.warning(f"Tipo de recurso para modelo não claramente definido ('{tipo_recurso_para_agente}'), usando default '{tipo_recurso_usado_para_modelo}'.")
 
-    modelo_path_obj = CAMINHO_MODELOS.get(tipo_recurso_usado_para_modelo, Path(MODELO_PADRAO)) # MODELO_PADRAO já é str
+    modelo_path_obj = CAMINHO_MODELOS.get(tipo_recurso_usado_para_modelo, Path(MODELO_PADRAO))
 
-    if not modelo_path_obj.exists(): # modelo_path_obj é Path aqui
+    if not modelo_path_obj.exists():
         logger.error(f"Modelo base TXT não encontrado: {modelo_path_obj} para tipo {tipo_recurso_usado_para_modelo}")
         return jsonify({"erro": f"Arquivo de modelo base (.txt) para '{tipo_recurso_usado_para_modelo}' não encontrado no servidor."}), 500
-    
+
     dados_para_agente = {
         'numero_processo': estrutura_base_servidor.get('numero_processo') or dados_processo_frontend.get('numero_processo', "{{NUM_PROCESSO}}"),
         'recorrente': estrutura_base_servidor.get('recorrente') or dados_processo_frontend.get('recorrente', "{{NOME_RECORRENTE}}"),
-        'CIDADE': "Goiânia", 
+        'CIDADE': "Goiânia",
         'DATA_ATUAL': datetime.now().strftime("%d de %B de %Y"),
         'NOME_PROMOTOR': "Promotor(a) de Justiça",
-        'TIPO_RECURSO_MAIUSCULO': tipo_recurso_usado_para_modelo.upper() if tipo_recurso_usado_para_modelo else "RECURSO",
-        'SAUDACAO_TRIBUNAL_SUPERIOR': "COLENDO SUPERIOR TRIBUNAL DE JUSTIÇA" if tipo_recurso_usado_para_modelo == "REsp" else \
-                                     "EXCELSO SUPREMO TRIBUNAL FEDERAL" if tipo_recurso_usado_para_modelo == "RE" else \
-                                     "{{SAUDACAO_TRIBUNAL_SUPERIOR}}",
+        'TIPO_RECURSO_MAIUSCULO': tipo_recurso_usado_para_modelo.upper(),
+        'SAUDACAO_TRIBUNAL_SUPERIOR': "COLENDO SUPERIOR TRIBUNAL DE JUSTIÇA" if tipo_recurso_usado_para_modelo == "REsp"
+                                     else "EXCELSO SUPREMO TRIBUNAL FEDERAL" if tipo_recurso_usado_para_modelo == "RE"
+                                     else "{{SAUDACAO_TRIBUNAL_SUPERIOR}}",
         'NUM_EVENTOS_ACORDAOS': estrutura_base_servidor.get('num_eventos', "{{NUM_EVENTOS_ACORDAOS}}"),
         'ARTIGO_FUNDAMENTO_RECURSO': estrutura_base_servidor.get('artigo_fundamento', "{{ARTIGO_FUNDAMENTO_RECURSO}}"),
-        'NUMERO_CONTRARRAZOES': "{{NUMERO_CONTRARRAZOES}}", 
+        'NUMERO_CONTRARRAZOES': "{{NUMERO_CONTRARRAZOES}}",
         'ANO_ATUAL': str(datetime.now().year),
-        'NOME_NUCLEO_OU_PROMOTORIA': "{{NOME_NUCLEO_OU_PROMOTORIA}}", 
-        'NUM_PORTARIA': "{{NUM_PORTARIA}}", 
-        'COMPLEMENTO_CARGO_PROMOTOR': "", 
-        'INFO_DELEGACAO_PROMOTOR': ""   
+        'NOME_NUCLEO_OU_PROMOTORIA': "{{NOME_NUCLEO_OU_PROMOTORIA}}",
+        'NUM_PORTARIA': "{{NUM_PORTARIA}}",
+        'COMPLEMENTO_CARGO_PROMOTOR': "",
+        'INFO_DELEGACAO_PROMOTOR': ""
     }
+
     logger.debug(f"Dados para agente: {dados_para_agente}")
     logger.debug(f"Resumo para agente (início): {resumo_tecnico_para_agente[:200] if resumo_tecnico_para_agente else 'Nenhum'}...")
 
@@ -638,22 +638,79 @@ def gerar_peca_com_ia_endpoint():
         minuta_gerada = construir_minuta_com_ia(
             resumo_tecnico=resumo_tecnico_para_agente,
             teses_selecionadas=teses_selecionadas,
-            modelo_base_path=modelo_path_obj, # Passando o Path para o .txt
+            modelo_base_path=modelo_path_obj,
             dados_processo=dados_para_agente,
             temperatura_ia=0.2
         )
-        
-        if isinstance(minuta_gerada, str) and ("[ERRO:" in minuta_gerada or "[FALHA NA GERAÇÃO PELA IA" in minuta_gerada or "[CONTEÚDO BLOQUEADO PELA API:" in minuta_gerada or "[RESPOSTA INESPERADA OU VAZIA DA API GEMINI]" in minuta_gerada):
-             logger.error(f"Agente de IA retornou erro/bloqueio: {minuta_gerada}")
-             return jsonify({"erro": f"A IA encontrou um problema ao gerar a peça. Detalhe técnico: {minuta_gerada}"}), 500
+
+        if isinstance(minuta_gerada, str) and any(
+            erro in minuta_gerada for erro in [
+                "[ERRO:", "[FALHA NA GERAÇÃO PELA IA", "[CONTEÚDO BLOQUEADO PELA API:", "[RESPOSTA INESPERADA OU VAZIA DA API GEMINI]"
+            ]
+        ):
+            logger.error(f"Agente de IA retornou erro/bloqueio: {minuta_gerada}")
+            return jsonify({"erro": f"A IA encontrou um problema ao gerar a peça. Detalhe técnico: {minuta_gerada}"}), 500
         elif minuta_gerada is None:
             logger.error("Agente de IA retornou None.")
             return jsonify({"erro": "A IA não retornou uma minuta válida."}), 500
 
+        # Salvar a minuta gerada como .txt
+        nome_arquivo_minuta_txt = f"minuta_gerada_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+        caminho_completo_minuta = PASTA_PECAS_USUARIO / nome_arquivo_minuta_txt
+
+        with open(caminho_completo_minuta, "w", encoding="utf-8") as f_minuta:
+            f_minuta.write(minuta_gerada)
+        logger.info(f"Minuta gerada pela IA salva em '{caminho_completo_minuta}'")
+
+        # Gerar .docx com python-docx
+        try:
+            from docx import Document
+
+            caminho_docx = caminho_completo_minuta.with_suffix(".docx")
+            doc = Document()
+            for paragrafo in minuta_gerada.strip().split("\n\n"):
+                doc.add_paragraph(paragrafo.strip())
+            doc.save(caminho_docx)
+            logger.info(f"Minuta .docx salva em '{caminho_docx.name}'")
+            app.config["ULTIMO_PROCESSAMENTO"]["arquivos"]["minuta_gerada_docx"] = caminho_docx.relative_to(RAIZ_PROJETO)
+        except Exception as e_docx:
+            logger.error(f"Erro ao gerar .docx: {e_docx}", exc_info=True)
+
+        # Gerar .odt com odfpy
+        try:
+            from odf.opendocument import OpenDocumentText
+            from odf.text import P
+
+            caminho_odt = caminho_completo_minuta.with_suffix(".odt")
+            odt = OpenDocumentText()
+            for paragrafo in minuta_gerada.strip().split("\n\n"):
+                p = P(text=paragrafo.strip())
+                odt.text.addElement(p)
+            odt.save(str(caminho_odt))
+            logger.info(f"Minuta .odt salva em '{caminho_odt.name}'")
+            app.config["ULTIMO_PROCESSAMENTO"]["arquivos"]["minuta_gerada_odt"] = caminho_odt.relative_to(RAIZ_PROJETO)
+        except Exception as e_odt:
+            logger.error(f"Erro ao gerar .odt: {e_odt}", exc_info=True)
+
+
+        # Registrar caminho para download
+        if "ULTIMO_PROCESSAMENTO" not in app.config:
+            app.config["ULTIMO_PROCESSAMENTO"] = {}
+
+        if "arquivos" not in app.config["ULTIMO_PROCESSAMENTO"]:
+            app.config["ULTIMO_PROCESSAMENTO"]["arquivos"] = {}
+
+        caminho_relativo_minuta = caminho_completo_minuta.relative_to(RAIZ_PROJETO)
+        app.config["ULTIMO_PROCESSAMENTO"]["arquivos"]["minuta_gerada"] = caminho_relativo_minuta
+        logger.info(f"Caminho da minuta registrado para download: {caminho_relativo_minuta}")
+
         return jsonify({"minuta_gerada": minuta_gerada})
+
     except Exception as e:
-        logger.exception("Erro crítico ao chamar o agente para gerar peça com IA.")
-        return jsonify({"erro": f"Erro interno no servidor ao gerar a peça: {str(e)}"}), 500
+        logger.exception("Erro crítico ao gerar ou salvar a minuta com IA.")
+        return jsonify({"erro": f"Erro interno no servidor ao gerar ou salvar a peça: {str(e)}"}), 500
+
+
 
 
 if __name__ == "__main__":
