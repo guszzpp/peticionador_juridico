@@ -20,7 +20,6 @@ from docx.shared import Pt
 from odf import text as odf_text_module, teletype
 from odf.opendocument import load as load_odt_file
 
-# Importações dos seus módulos
 from peticionador.controladores.controlador_principal import processar_peticao
 from peticionador.agentes.agente_gerador_peca import construir_minuta_com_ia
 
@@ -566,6 +565,23 @@ def excluir_modelo_endpoint():
     except Exception as e:
         logger.exception(f"Erro ao excluir arquivos para '{nome_base}'.")
         return jsonify({"erro": f"Erro interno ao excluir: {str(e)}"}), 500
+
+@app.route('/sugerir_teses', methods=["POST"])
+def sugerir_teses_endpoint():
+    logger = app.logger
+    dados = request.json
+    texto_peticao = dados.get("texto_peticao")
+    tipo_recurso = dados.get("tipo_recurso")
+
+    if not texto_peticao or not tipo_recurso:
+        return jsonify({"erro": "Texto da petição e tipo de recurso são obrigatórios."}), 400
+
+    try:
+        sugestoes = sugerir_teses(texto_peticao=texto_peticao, modelos_existentes=TESES_DISPONIVEIS, tipo_recurso=tipo_recurso)
+        return jsonify(sugestoes)
+    except Exception as e:
+        logger.exception("Erro ao sugerir teses com base na petição.")
+        return jsonify({"erro": f"Erro ao sugerir teses: {str(e)}"}), 500
 
 
 @app.route('/gerar_peca_com_ia', methods=['POST'])
