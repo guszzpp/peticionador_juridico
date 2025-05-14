@@ -11,8 +11,6 @@ log = logging.getLogger(__name__)
 TipoModeloGemini = Literal[
     "models/gemini-1.5-pro",
     "models/gemini-1.5-flash",
-    "gemini-pro" # Adicionando alias comum se necessário
-    # Adicione outros modelos válidos se necessário
 ]
 
 class ClienteGemini(ServicoResumidor): # ServicoResumidor pode precisar ser renomeado ou generalizado se só tem 'resumir'
