@@ -364,9 +364,7 @@ $(document).ready(function () {
                  dadosProcesso.numero_processo = ultimoResultadoProcessado.estrutura_base.numero_processo;
             } else {
                  dadosProcesso.numero_processo = ultimoResultadoProcessado.numero_processo || dadosProcesso.numero_processo; // Fallback para o campo que existia
-            }
-            // Adicione outros campos relevantes do 'ultimoResultadoProcessado.estrutura_base' se necessário
-            // Ex: dados_processo.num_eventos = ultimoResultadoProcessado.estrutura_base.get('num_eventos', '{{NUM_EVENTOS}}');
+            }            
         }
         
         $('#loadingModal').modal('show');
