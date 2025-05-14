@@ -2,6 +2,7 @@
 
 import os
 import shutil
+from babel.dates import format_date
 from datetime import datetime
 from pathlib import Path
 import uuid
@@ -611,7 +612,7 @@ def gerar_peca_com_ia_endpoint():
         'numero_processo': estrutura_base_servidor.get('numero_processo') or dados_processo_frontend.get('numero_processo', "{{NUM_PROCESSO}}"),
         'recorrente': estrutura_base_servidor.get('recorrente') or dados_processo_frontend.get('recorrente', "{{NOME_RECORRENTE}}"),
         'CIDADE': "Goiânia",
-        'DATA_ATUAL': datetime.now().strftime("%d de %B de %Y"),
+        'DATA_ATUAL': format_date(datetime.now(), format="d 'de' MMMM 'de' y", locale='pt_BR'),
         'NOME_PROMOTOR': "Promotor(a) de Justiça",
         'TIPO_RECURSO_MAIUSCULO': tipo_recurso_usado_para_modelo.upper(),
         'SAUDACAO_TRIBUNAL_SUPERIOR': "COLENDO SUPERIOR TRIBUNAL DE JUSTIÇA" if tipo_recurso_usado_para_modelo == "REsp"
