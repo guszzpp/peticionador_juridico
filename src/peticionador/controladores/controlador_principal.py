@@ -55,7 +55,7 @@ def processar_peticao(
 
         
         if hasattr(estado, 'numero_processo'): # Verifica se o campo existe
-            from peticionador.agentes.agente_extrator import extrair_numero_processo_cnj # Importa aqui para evitar dependencia se não usar
+            from peticionador.agentes.agente_extrator import extrair_numero_processo_cnj
             estado.numero_processo = extrair_numero_processo_cnj(texto_pg1_valido)
 
 
