@@ -1,86 +1,83 @@
-Peticionador Jurídico
+# Peticionador Jurídico
 
-Este projeto implementa uma aplicação modular em Python para a geração automatizada de contrarrazões de Recurso Especial (REsp) e Recurso Extraordinário (RE), com interface gráfica baseada em Gradio, extração de informações com modelos de linguagem e estruturação conforme padrões institucionais.
-Funcionalidades
+## Descrição
 
-    Upload de petições em PDF
+O Peticionador Jurídico é uma aplicação desenvolvida em Python com o objetivo de auxiliar na elaboração de peças processuais, especificamente contrarrazões a Recursos Especiais (REsp) e Recursos Extraordinários (RE). A ferramenta utiliza modelos de linguagem avançados (Google Gemini) para extrair informações relevantes de petições em formato PDF, gerar resumos técnicos, sugerir teses jurídicas e, finalmente, construir uma minuta da peça de contrarrazões.
 
-    Extração automática de:
+A interface do usuário é construída com Flask, permitindo o upload de documentos, a interação com as sugestões da IA e o download das peças geradas nos formatos .docx e .odt.
 
-        Nome do recorrente
+## Funcionalidades Principais
 
-        Tipo de recurso (RE ou REsp)
+* Upload de petições de recurso em formato PDF.
+* Extração automática de informações como nome do recorrente e tipo de recurso utilizando IA.
+* Geração de resumo técnico da petição do recorrente através de IA.
+* Sugestão de teses e argumentos aplicáveis pela IA.
+* Construção de minuta de contrarrazões com base em modelo pré-definido, resumo técnico e teses selecionadas, utilizando IA.
+* Gerenciamento de modelos de peças completas e teses avulsas (arquivos .txt ou .odt).
+* Download das minutas geradas em formatos .docx e .odt.
+* Interface web intuitiva desenvolvida com Flask.
 
-    Geração de resumo técnico com modelo Gemini
+## Estrutura do Projeto
 
-    Sugestão de teses e argumentos reutilizáveis
+O projeto segue uma arquitetura modular, com as seguintes pastas principais dentro de `src/peticionador/`:
 
-    Geração automática de documentos .docx e .odt
+* `agentes/`: Módulos responsáveis pela interação com os modelos de linguagem (IA).
+* `controladores/`: Contém a lógica da interface Flask, incluindo rotas, templates HTML e arquivos estáticos (CSS, JavaScript).
+* `modelos/`: Armazena modelos de peças, teses avulsas e a definição do estado da petição.
+* `servicos/`: Módulos com lógica de negócio, como extração de PDF, pré-processamento de texto e geração de documentos.
+* `utilitarios/`: Funções e configurações auxiliares, como o gerenciamento de chaves de API.
 
-    Interface gráfica com drag-and-drop e customização via CSS
+Outras pastas importantes na raiz do projeto incluem:
 
-Estrutura do Projeto
+* `testes/`: Contém os testes unitários e de integração.
+* `scripts/`: Scripts para iniciar a aplicação e para testes manuais de funcionalidades.
+* `arquivos_upload/`: Pasta temporária para arquivos PDF enviados pelo usuário.
+* `arquivos_gerados/` (ou a pasta configurada): Destino padrão para algumas saídas de arquivos (configurável).
+* `src/peticionador/modelos/pecas_completas/`: Local onde as minutas geradas pela IA e modelos de peças completas gerenciados pelo usuário são armazenados.
+* `src/peticionador/modelos/teses_avulsas/`: Local para teses avulsas gerenciadas pelo usuário.
 
-peticionador_juridico/
-├── src/
-│   └── peticionador/
-│       ├── agentes/
-│       ├── controladores/
-│       ├── modelos/
-│       ├── servicos/
-│       ├── utilitarios/
-│       └── assets/
-├── testes/
-├── scripts/
-├── arquivos_gerados/
-├── requirements.txt
-├── pyproject.toml
-└── README.md
+## Configuração e Execução
 
-Execução local
+### Pré-requisitos
 
-    Instale as dependências em um ambiente virtual:
+* Python 3.9 ou superior.
+* Chave de API para o Google Gemini, configurada como variável de ambiente `GEMINI_API_KEY`.
 
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+### Instalação
 
-    Execute a interface:
+1.  Clone o repositório:
+    ```bash
+    git clone <url-do-repositorio>
+    cd peticionador-juridico
+    ```
 
-PYTHONPATH=src python src/peticionador/controladores/interface_gradio.py
+2.  Crie e ative um ambiente virtual:
+    ```bash
+    python -m venv venv
+    # No Windows
+    # venv\Scripts\activate
+    # No macOS/Linux
+    # source venv/bin/activate
+    ```
 
-Testes
+3.  Instale as dependências:
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-Execute os testes unitários com:
+4.  (Opcional, para desenvolvimento) Instale as dependências de desenvolvimento:
+    ```bash
+    pip install -r requirements-dev.txt
+    ```
 
-pytest
+5.  Configure a variável de ambiente `GEMINI_API_KEY` com sua chave da API do Google Gemini. Você pode criar um arquivo `.env` na raiz do projeto com o seguinte conteúdo:
+    ```
+    GEMINI_API_KEY="SUA_CHAVE_API_AQUI"
+    ```
 
-Observações
+### Execução
 
-    O modelo RoBERTa pode ser substituído facilmente por outro compatível via Hugging Face.
+Para iniciar a aplicação Flask:
 
-    A API Gemini é modular e opcional, podendo ser substituída por outro LLM.
-
-    Os modelos de contrarrazões estão na pasta src/peticionador/modelos.
-
-    ##  Considerações de Segurança
-
-Durante o desenvolvimento, a aplicação Gradio é configurada para rodar com:
-
-```python
-demo.launch(server_name="0.0.0.0", server_port=7860)  #  nosec
-
-Esse bind permite acesso via rede local para fins de teste interno.
-
-Atenção: essa configuração não deve ser utilizada em produção sem camada de autenticação, firewall, proxy reverso e HTTPS. Caso deseje restringir o acesso, modifique para:
-
-demo.launch(server_name="127.0.0.1", server_port=7860)
-
-
----
-
-###  Motivos para essa prática:
-
-- **Justifica o uso de `#  nosec`** para o Bandit em auditorias externas.
-- Informa outros desenvolvedores sobre o **risco implícito**.
-- Mostra aderência à diretriz da **Política Unificada – item 6.2: “documentar decisões de segurança explícitas”**.
+```bash
+python scripts/iniciar_flask.py
