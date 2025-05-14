@@ -671,7 +671,7 @@ def gerar_peca_com_ia_endpoint():
 
         # Salvar a minuta gerada como .txt
         nome_arquivo_minuta_txt = f"minuta_gerada_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
-        caminho_completo_minuta = PASTA_PECAS_USUARIO / nome_arquivo_minuta_txt
+        caminho_completo_minuta = PASTA_MINUTAS_FINAIS_IA / nome_arquivo_minuta_txt
 
         with open(caminho_completo_minuta, "w", encoding="utf-8") as f_minuta:
             f_minuta.write(minuta_gerada)

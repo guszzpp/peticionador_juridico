@@ -9,6 +9,16 @@ from peticionador.servicos.integrador_gemini import ClienteGemini
 logging.basicConfig(level=logging.INFO) # Considere mover para um config central de logging
 log = logging.getLogger(__name__)
 
+def extrair_numero_processo_cnj(texto: str) -> str:
+    """
+    Extrai o número de processo no formato CNJ (número único) do texto.
+
+    Exemplo de formato válido: 0119841-30.2017.8.09.0175
+    """
+    padrao = r"\b\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}\b"
+    resultado = re.search(padrao, texto)
+    return resultado.group(0) if resultado else "Não identificado"
+
 def extrair_dados_iniciais_gemini(texto_pagina: Optional[str]) -> Dict[str, str]:
     dados_padrao = {"recorrente": "Desconhecido", "tipo_recurso": "Indeterminado"}
 
