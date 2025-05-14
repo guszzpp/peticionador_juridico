@@ -529,8 +529,6 @@ def salvar_modelo_endpoint():
 
 @app.route('/excluir_modelo', methods=['POST'])
 def excluir_modelo_endpoint():
-    # ... (código da rota excluir_modelo_endpoint como na sua última versão,
-    #      mas precisa garantir que exclui tanto o .odt quanto o .txt se existirem com o mesmo nome base)
     logger = app.logger
     data = request.get_json()
     nome_arquivo_ref = data.get('nome_arquivo') # Pode ser nome.odt ou nome.txt
