@@ -44,7 +44,6 @@ MODELOS_SISTEMA_NOMES = [NOME_ARQUIVO_MODELO_TXT_UNIFICADO]
 
 # Outras Constantes
 UPLOAD_FOLDER = RAIZ_PROJETO / "arquivos_upload"
-# ARQUIVOS_GERADOS_NOME_PASTA = "arquivos_gerados" # Usado em controlador_principal
 EXTENSOES_PERMITIDAS_PDF = {"pdf"}
 EXTENSOES_PERMITIDAS_MODELO_UPLOAD = {".txt", ".odt"}
 TESES_DISPONIVEIS = []
@@ -197,8 +196,7 @@ def processar():
         )
         
         estado = resultado.get("estado")
-        arquivos = resultado.get("arquivos", {})
-
+        
         if not estado:
             logger.error("Controlador 'processar_peticao' não retornou estado.")
             raise ValueError("Controlador não retornou estado.")
@@ -214,7 +212,6 @@ def processar():
                 "num_eventos": estado.estrutura_base.get("num_eventos"),
                 "artigo_fundamento": estado.estrutura_base.get("artigo_fundamento")
             },
-            "arquivos": arquivos 
         }
         logger.info(f"Processamento do PDF '{nome_seguro}' concluído com sucesso.")
         
@@ -224,7 +221,6 @@ def processar():
             "recorrente": estado.estrutura_base.get("recorrente", "Não identificado"),
             "tipo_recurso": estado.estrutura_base.get("tipo_recurso", "Indeterminado"),
             "numero_processo": estado.estrutura_base.get("numero_processo"),
-            "arquivos": list(arquivos.keys())
         })
     except ValueError as ve:
         logger.error(f"Erro de valor durante o processamento da petição '{nome_seguro}': {ve}", exc_info=True)

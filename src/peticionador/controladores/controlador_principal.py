@@ -9,19 +9,11 @@ from peticionador.agentes.agente_resumidor import gerar_resumo_tecnico
 from peticionador.agentes.agente_extrator import extrair_dados_iniciais_gemini
 from peticionador.agentes.agente_estrategista import sugerir_teses
 from peticionador.servicos.seletor_modelo import selecionar_modelo
-from peticionador.servicos.gerador_documento import gerar_peca_personalizada
 
 log = logging.getLogger(__name__)
 
-# --- Definição CORRETA da Raiz do Projeto e Caminho de Saída ---
-# __file__ aqui se refere a controlador_principal.py, que está em D:\...\src\peticionador\controladores\
-# 1º dirname: D:\...\src\peticionador\controladores
-# 2º dirname: D:\...\src\peticionador
-# 3º dirname: D:\...\src
-# 4º dirname: D:\Projetos\peticionador_juridico (RAIZ_PROJETO)
 RAIZ_PROJETO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 CAMINHO_SAIDA_ARQUIVOS = os.path.join(RAIZ_PROJETO, "arquivos_gerados")
-# --- FIM DA DEFINIÇÃO CORRETA ---
 
 def processar_peticao(
     caminho_arquivo_pdf: str,
@@ -34,8 +26,7 @@ def processar_peticao(
     """
     estado = EstadoPeticao()
     estado.nome_arquivo_pdf = os.path.basename(caminho_arquivo_pdf)
-    arquivos_gerados = {} # Inicia vazio
-
+    
     try:
         log.info(f"Iniciando processamento do PDF: {estado.nome_arquivo_pdf}")
 
@@ -52,12 +43,10 @@ def processar_peticao(
         dados_iniciais = extrair_dados_iniciais_gemini(texto_pg1_valido)
         estado.estrutura_base.update(dados_iniciais)
         log.info(f"Extração Gemini (Flash) concluída: {estado.estrutura_base}")
-
         
         if hasattr(estado, 'numero_processo'): # Verifica se o campo existe
             from peticionador.agentes.agente_extrator import extrair_numero_processo_cnj
             estado.numero_processo = extrair_numero_processo_cnj(texto_pg1_valido)
-
 
         # 3. Resumo técnico com Gemini Flash
         log.info("Iniciando Etapa 3: Geração de resumo com Gemini (Flash)...")
@@ -78,37 +67,11 @@ def processar_peticao(
              log.info(f"Sugestão de teses (Gemini Flash): {len(estado.argumentos_reutilizaveis)} teses sugeridas.")
         else:
             log.warning("Nenhum texto completo disponível para sugestão de teses.")
-
-        # 5. Escolha do modelo de documento
-        tipo_detectado = estado.estrutura_base.get("tipo_recurso", "Indeterminado")
-        modelo_path = selecionar_modelo(tipo_detectado, modelos_por_tipo, modelo_padrao)
-        log.info(f"Modelo de documento selecionado ({tipo_detectado}): {modelo_path}")
-
-        # 6. Geração da peça
-        # Garante que o diretório de saída exista na raiz correta
-        os.makedirs(CAMINHO_SAIDA_ARQUIVOS, exist_ok=True) # <-- MOVIDO PARA ANTES DA CHAMADA
-        log.info(f"Usando diretório de saída para peças: {CAMINHO_SAIDA_ARQUIVOS}")
-        # Passa o caminho absoluto para o diretório de saída
-        arquivos_gerados_com_path_abs = gerar_peca_personalizada(estado, modelo_path, saida_dir=CAMINHO_SAIDA_ARQUIVOS)
-
-        # Converter caminhos absolutos para relativos à RAIZ_PROJETO para armazenar em app.config
-        arquivos_gerados_relativos = {}
-        for tipo, caminho_abs in arquivos_gerados_com_path_abs.items():
-            if caminho_abs: # Se o arquivo foi gerado com sucesso
-                # Garante que o caminho_abs é realmente uma string antes de usar relpath
-                if isinstance(caminho_abs, str):
-                    arquivos_gerados_relativos[tipo] = os.path.relpath(caminho_abs, RAIZ_PROJETO)
-                else:
-                    log.error(f"Caminho absoluto para tipo '{tipo}' não é uma string: {caminho_abs}")
-        arquivos_gerados = arquivos_gerados_relativos
-        log.info(f"Arquivos gerados (caminhos relativos à raiz do projeto): {arquivos_gerados}")
-
+        
     except Exception as e:
         log.error(f"Erro GERAL no processamento da petição: {e}", exc_info=True)
-        estado.resumo = f"[ERRO NO PROCESSAMENTO: {str(e)}]" # Exibe a mensagem do erro
-        # Retorna estado parcial e arquivos vazios em caso de erro grave
-        # É importante que 'arquivos_gerados' seja um dict para a interface Flask
-        return {"estado": estado, "arquivos": {}}
+        estado.resumo = f"[ERRO NO PROCESSAMENTO: {str(e)}]" # Exibe a mensagem do erro                
+        return {"estado": estado}
 
     log.info(f"Processamento do PDF {estado.nome_arquivo_pdf} concluído.")
-    return {"estado": estado, "arquivos": arquivos_gerados}
+    return {"estado": estado}
