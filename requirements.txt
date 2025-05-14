@@ -1,5 +1,4 @@
 ﻿google-generativeai>=0.4.0
-google-cloud-aiplatform>=1.43.0
 python-docx
 odfpy
 flask>=2.0.0

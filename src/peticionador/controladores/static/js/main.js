@@ -392,22 +392,30 @@ $(document).ready(function () {
             }),
             success: function(response) {
                 $('#loadingModal').modal('hide');
+            
                 if (response.minuta_gerada) {
                     if (minutaTextArea.hasClass('note-editor')) {
                         minutaTextArea.summernote('code', response.minuta_gerada.replace(/\n/g, '<br>'));
                     } else {
                         minutaTextArea.val(response.minuta_gerada);
                     }
+            
                     alert("Peça gerada com IA e atualizada na minuta!");
+            
+                    // ✅ Ativa os botões de download Word/LibreOffice
+                    $('#btnDownloadDocx').removeClass('disabled')
+                        .attr('aria-disabled', 'false')
+                        .attr('href', '/download/minuta_gerada_docx');
+            
+                    $('#btnDownloadOdt').removeClass('disabled')
+                        .attr('aria-disabled', 'false')
+                        .attr('href', '/download/minuta_gerada_odt');
+            
                 } else if (response.erro) {
                     alert("Erro ao gerar peça com IA: " + response.erro);
                 }
             },
-            error: function(xhr) {
-                $('#loadingModal').modal('hide');
-                const erroMsg = xhr?.responseJSON?.erro || 'Falha na comunicação com o servidor ao gerar a peça.';
-                alert(erroMsg);
-            }
+            
         });
     });
     

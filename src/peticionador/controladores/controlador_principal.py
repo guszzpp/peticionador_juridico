@@ -6,7 +6,7 @@ from typing import Dict, List, Optional # Garanta que todos os tipos usados est�
 from peticionador.modelos.estado_peticao import EstadoPeticao
 from peticionador.servicos.extrator_pdf import extrair_texto_pdf_separado
 from peticionador.agentes.agente_resumidor import gerar_resumo_tecnico
-from peticionador.agentes.agente_extrator import extrair_dados_iniciais_gemini #, extrair_numero_processo_cnj # Mantenha cnj se usar
+from peticionador.agentes.agente_extrator import extrair_dados_iniciais_gemini
 from peticionador.agentes.agente_estrategista import sugerir_teses
 from peticionador.servicos.seletor_modelo import selecionar_modelo
 from peticionador.servicos.gerador_documento import gerar_peca_personalizada
@@ -53,10 +53,10 @@ def processar_peticao(
         estado.estrutura_base.update(dados_iniciais)
         log.info(f"Extração Gemini (Flash) concluída: {estado.estrutura_base}")
 
-        # (Opcional: Se você for usar extrair_numero_processo_cnj, chame aqui)
-        # if hasattr(estado, 'numero_processo'): # Verifica se o campo existe
-        #     from peticionador.agentes.agente_extrator import extrair_numero_processo_cnj # Importa aqui para evitar dependencia se não usar
-        #     estado.numero_processo = extrair_numero_processo_cnj(texto_pg1_valido)
+        
+        if hasattr(estado, 'numero_processo'): # Verifica se o campo existe
+            from peticionador.agentes.agente_extrator import extrair_numero_processo_cnj # Importa aqui para evitar dependencia se não usar
+            estado.numero_processo = extrair_numero_processo_cnj(texto_pg1_valido)
 
 
         # 3. Resumo técnico com Gemini Flash

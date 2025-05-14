@@ -1,7 +1,7 @@
 # src/peticionador/agentes/agente_extrator.py
 import logging
 import json
-# import re # Mantenha se for usar extrair_numero_processo_cnj depois
+import re
 from typing import Dict, Optional
 
 from peticionador.servicos.integrador_gemini import ClienteGemini
