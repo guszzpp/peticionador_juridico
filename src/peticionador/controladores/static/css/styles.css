@@ -41,16 +41,7 @@
     color: #cbd5e0; /* Um cinza claro para hover no close */
     background-color: transparent; /* Sem fundo no hover do close */
   }
-  
-  /* Estilo para empurrar o conteúdo principal quando o menu abrir (opcional) */
-  /* Se quiser que o conteúdo principal seja empurrado, descomente este e o JS correspondente */
-  /*
-  #mainContentPusher {
-    transition: margin-left .3s;
-    padding: 16px;
-  }
-  */
-  
+      
   /* Adaptação do seu botão de menu container para não ser sobreposto */
   .menu-button-container {
     position: fixed;
@@ -308,25 +299,13 @@ textarea.form-control {
     }
 }
 
-/* Estilo para as tabelas de gerenciamento para tentar um layout mais fixo */
-.table-responsive > .table {
-    /* table-layout: fixed; /* Descomente esta linha para testar um layout fixo */
-    /* width: 100%; */ /* Garante que a tabela ocupe a largura disponível se usar table-layout: fixed */
-}
-
 /* Coluna do Checkbox (opcional, para controle) */
 .coluna-checkbox {
     width: 5%; /* Ou um valor fixo como 40px */
     text-align: center;
 }
 
-/* Coluna Nome da Peça */
-.coluna-nome-peca {
-    /* Você pode definir uma largura ou max-width se necessário, mas geralmente é menos problemática */
-    /* min-width: 200px; */
-}
-
-/* Coluna Conteúdo da Tese (mantendo a tentativa anterior, mas podemos ajustar) */
+/* Coluna Conteúdo da Tese */
 .coluna-conteudo-tese {
     max-width: 350px;  /* Tente um valor um pouco menor ou maior */
     min-width: 200px;  /* Garante que não encolha demais */
