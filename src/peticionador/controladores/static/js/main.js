@@ -90,9 +90,8 @@ $(document).ready(function () {
                 }
                 
                 // ATUALIZA O TEXTAREA "resumoPeticao" com resumo E teses da IA
-                let textoCombinadoParaResumoArea = "";
-                // ... (lógica para construir textoCombinadoParaResumoArea) ...
-                if (response.resumo) { // <--- INÍCIO DO BLOCO QUE VOCÊ COPIOU DO MEU EXEMPLO
+                let textoCombinadoParaResumoArea = "";                
+                if (response.resumo) { 
                     textoCombinadoParaResumoArea += `RESUMO TÉCNICO DO RECURSO (GERADO PELA IA):\n${response.resumo}\n\n`;
                 } else {
                     textoCombinadoParaResumoArea += `RESUMO TÉCNICO DO RECURSO (GERADO PELA IA):\n[Nenhum resumo gerado.]\n\n`;
@@ -105,7 +104,7 @@ $(document).ready(function () {
                     });
                 } else {
                     textoCombinadoParaResumoArea += "TESES E ARGUMENTOS APLICÁVEIS (SUGESTÕES DA IA):\n[Nenhuma tese/argumento aplicável identificado pela IA.]\n";
-                } // <--- FIM DO BLOCO QUE VOCÊ COPIOU DO MEU EXEMPLO
+                }
                 resumoPeticaoTextArea.val(textoCombinadoParaResumoArea.trim());
 
 
@@ -116,10 +115,6 @@ $(document).ready(function () {
                     minutaTextArea.val('');
                 }
                 
-                // containerTesesAplicadas.empty(); // Esta linha sozinha remove os botões mas não os move de volta
-                
-                // ========== INÍCIO DA LÓGICA DE RESET CORRIGIDA (SUBSTITUA O QUE VOCÊ TINHA AQUI) =========
-                // Move todos os botões de tese de volta de "Aplicadas" para "Prontas"
                 containerTesesAplicadas.find('.tese-button').each(function() {
                     $(this).removeClass('btn-success active').addClass('btn-outline-info');
                     $(this).find('i.fas.fa-check-circle').remove(); // Remove ícone de check
@@ -137,8 +132,7 @@ $(document).ready(function () {
                 
                 atualizarPlaceholderTesesAplicadas(); // Atualiza o placeholder se a lista de aplicadas estiver vazia
                 $('#buscarModelosTeses').trigger('keyup'); // Atualiza a visibilidade da busca nas teses prontas
-                // ========== FIM DA LÓGICA DE RESET CORRIGIDA ==========
-
+                
                 atualizarPlaceholderTesesAplicadas();
 
 

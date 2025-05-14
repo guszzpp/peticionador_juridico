@@ -211,8 +211,8 @@ def processar():
                 "recorrente": estado.estrutura_base.get("recorrente", "Não identificado"),
                 "tipo_recurso": estado.estrutura_base.get("tipo_recurso", "Indeterminado"),
                 "numero_processo": estado.estrutura_base.get("numero_processo"),
-                "num_eventos": estado.estrutura_base.get("num_eventos"), # Chave consistente
-                "artigo_fundamento": estado.estrutura_base.get("artigo_fundamento") # Chave consistente
+                "num_eventos": estado.estrutura_base.get("num_eventos"),
+                "artigo_fundamento": estado.estrutura_base.get("artigo_fundamento")
             },
             "arquivos": arquivos 
         }
@@ -415,10 +415,7 @@ def gerenciar_modelos_page():
 
 
 @app.route('/salvar_modelo', methods=['POST'])
-def salvar_modelo_endpoint():
-    # ... (lógica da rota salvar_modelo_endpoint como na sua última versão,
-    #      mas garantindo que EXTENSOES_PERMITIDAS_MODELO_UPLOAD é usado para validar o arquivo_upload)
-    #      e que lida corretamente com o nome base para salvar .odt e .txt
+def salvar_modelo_endpoint():    
     logger = app.logger
     try:
         nome_modelo_form = request.form.get('nome', '').strip() # Nome base que o usuário quer
@@ -707,9 +704,6 @@ def gerar_peca_com_ia_endpoint():
     except Exception as e:
         logger.exception("Erro crítico ao gerar ou salvar a minuta com IA.")
         return jsonify({"erro": f"Erro interno no servidor ao gerar ou salvar a peça: {str(e)}"}), 500
-
-
-
 
 if __name__ == "__main__":
     # Configuração de logging para execução direta (python interface_flask.py)
