@@ -81,3 +81,25 @@ Para iniciar a aplicação Flask:
 
 ```bash
 python scripts/iniciar_flask.py
+
+* A aplicação estará acessível em http://127.0.0.1:5000 (ou http://0.0.0.0:5000 dependendo da configuração no script).
+
+### Testes
+
+* Para executar os testes automatizados:
+* Bash
+
+* pytest
+
+* Diretrizes de Desenvolvimento
+
+* Este projeto busca seguir as diretrizes da "Política Institucional Unificada de Desenvolvimento de Software" e do "Manual Institucional de Padronização para Desenvolvimento de Software em Python" (se aplicável ao seu contexto). Isso inclui:
+
+*     Clareza e Legibilidade: Código bem escrito, com nomes descritivos em português técnico.
+*     Modularidade: Separação de responsabilidades em diferentes camadas e módulos.
+*     Testabilidade: Desenvolvimento orientado a testes com boa cobertura.
+*     Segurança: Gerenciamento seguro de segredos e validação de entradas.
+*     Versionamento: Uso de Git com commits semânticos.
+*     Qualidade de Código: Uso de linters e formatadores (Black, Flake8, iSort) e tipagem estática (MyPy).
+
+* Consulte os arquivos Politica_Unificada.pdf e Manual_Python.pdf para mais detalhes sobre as práticas de desenvolvimento esperadas.
