@@ -18,8 +18,8 @@ from werkzeug.utils import secure_filename
 from typing import Set, Dict
 from docx.shared import Pt
 from odf import text as odf_text_module, teletype
-from odf.opendocument import load as load_odt_file
-
+from odf.opendocument import load as load_docx_file
+from peticionador.agentes.agente_estrategista import sugerir_teses
 from peticionador.controladores.controlador_principal import processar_peticao
 from peticionador.agentes.agente_gerador_peca import construir_minuta_com_ia
 
@@ -53,7 +53,7 @@ MODELOS_SISTEMA_NOMES = [NOME_ARQUIVO_MODELO_TXT_UNIFICADO]
 # Outras Constantes
 UPLOAD_FOLDER = RAIZ_PROJETO / "arquivos_upload"
 EXTENSOES_PERMITIDAS_PDF = {"pdf"}
-EXTENSOES_PERMITIDAS_MODELO_UPLOAD = {".txt", ".odt"}
+EXTENSOES_PERMITIDAS_MODELO_UPLOAD = {".txt", ".docx"}
 TESES_DISPONIVEIS = []
 
 # --- Inicialização da Aplicação Flask ---
@@ -106,21 +106,18 @@ def extrair_texto_de_arquivo(caminho_arquivo_upload: Path) -> str:
         except Exception as e:
             logger.error(f"Erro ao ler arquivo .txt '{caminho_arquivo_upload.name}': {e}", exc_info=True)
             raise ValueError(f"Erro ao ler o arquivo .txt: {e}")
-    elif extensao == ".odt":
-        try:                       
-            doc = load_odt_file(str(caminho_arquivo_upload))
-            all_paras = doc.getElementsByType(odf_text_module.P)
-            paragrafos_texto = [teletype.extractText(para).strip() for para in all_paras]
-            texto_extraido = "\n\n".join(filter(None, paragrafos_texto)) 
-            logger.info(f"Texto extraído de .odt (tamanho: {len(texto_extraido)}).")
-        except ImportError:
-            logger.error("Biblioteca odfpy não instalada. Necessária para extrair de .odt")
-            raise ValueError("Erro ao processar .odt: dependência odfpy ausente no servidor.")
+    elif extensao == ".docx":
+        try:
+            from docx import Document
+            doc = Document(str(caminho_arquivo_upload))
+            paragrafos = [p.text.strip() for p in doc.paragraphs if p.text.strip()]
+            texto_extraido = "\n\n".join(paragrafos)
+            logger.info(f"Texto extraído de .docx (tamanho: {len(texto_extraido)}).")
         except Exception as e:
-            logger.error(f"Erro ao extrair texto de .odt '{caminho_arquivo_upload.name}': {e}", exc_info=True)
-            raise ValueError(f"Erro ao converter o arquivo .odt para texto: {e}")
+            logger.error(f"Erro ao extrair de .docx '{caminho_arquivo_upload.name}': {e}", exc_info=True)
+            raise ValueError(f"Erro ao converter .docx para texto: {e}")
     else:
-        raise ValueError(f"Tipo de arquivo não suportado para extração de texto: {extensao}. Use .txt ou .odt.")
+        raise ValueError(f"Tipo de arquivo não suportado para extração de texto: {extensao}. Use .txt ou .docx.")
     
     return texto_extraido.strip()
 
@@ -301,25 +298,25 @@ def obter_conteudo_modelo_endpoint():
         return jsonify({"erro": "Tipo de modelo inválido."}), 400
 
     if not caminho_arquivo_txt_para_ler or not caminho_arquivo_txt_para_ler.exists():
-         # Tenta fallback para .odt -> extrair -> salvar .txt -> ler .txt (se o original era .odt)
+         # Tenta fallback para .docx -> extrair -> salvar .txt -> ler .txt (se o original era .docx)
         nome_base_original = Path(nome_arquivo_req).stem
         pasta_original = PASTA_PECAS_USUARIO if tipo == 'peca' else PASTA_TESES_USUARIO
-        caminho_odt_original = pasta_original / f"{nome_base_original}.odt"
+        caminho_docx_original = pasta_original / f"{nome_base_original}.docx"
 
-        if caminho_odt_original.exists():
-            logger.warning(f"Arquivo .txt '{caminho_arquivo_txt_para_ler}' não encontrado, mas .odt '{caminho_odt_original}' existe. Tentando extrair.")
+        if caminho_docx_original.exists():
+            logger.warning(f"Arquivo .txt '{caminho_arquivo_txt_para_ler}' não encontrado, mas .docx '{caminho_docx_original}' existe. Tentando extrair.")
             try:
-                conteudo_extraido = extrair_texto_de_arquivo(caminho_odt_original)
+                conteudo_extraido = extrair_texto_de_arquivo(caminho_docx_original)
                 # Salva o .txt extraído para futuras requisições
                 with open(caminho_arquivo_txt_para_ler, "w", encoding="utf-8") as f_txt_novo:
                     f_txt_novo.write(conteudo_extraido)
-                logger.info(f"Conteúdo extraído de '{caminho_odt_original.name}' e salvo em '{caminho_arquivo_txt_para_ler.name}'.")
+                logger.info(f"Conteúdo extraído de '{caminho_docx_original.name}' e salvo em '{caminho_arquivo_txt_para_ler.name}'.")
                 return jsonify({"conteudo": conteudo_extraido})
             except Exception as e_extract:
-                logger.error(f"Falha ao extrair/salvar .txt de '{caminho_odt_original.name}' sob demanda: {e_extract}", exc_info=True)
+                logger.error(f"Falha ao extrair/salvar .txt de '{caminho_docx_original.name}' sob demanda: {e_extract}", exc_info=True)
                 return jsonify({"erro": f"Falha ao processar o arquivo modelo original: {nome_arquivo_req}"}), 500
         else:
-            logger.error(f"Arquivo .txt para '{nome_arquivo_req}' não encontrado (e nenhum .odt correspondente).")
+            logger.error(f"Arquivo .txt para '{nome_arquivo_req}' não encontrado (e nenhum .docx correspondente).")
             return jsonify({"erro": f"Conteúdo textual para '{nome_arquivo_req}' não encontrado."}), 404
             
     try:
@@ -345,14 +342,14 @@ def gerenciar_modelos_page():
         caminho_txt = PASTA_MODELOS_BASE / nome_arq_sistema_txt
         if caminho_txt.is_file():
             nome_base = nome_arq_sistema_txt[:-4]
-            odt_correspondente = PASTA_MODELOS_BASE / f"{nome_base}.odt"
-            formato_orig = "odt" if odt_correspondente.exists() else "txt"
+            docx_correspondente = PASTA_MODELOS_BASE / f"{nome_base}.docx"
+            formato_orig = "docx" if docx_correspondente.exists() else "txt"
             modelos_pecas.append({
                 "id": nome_arq_sistema_txt,
                 "nome": f"{nome_arq_sistema_txt} (Sistema, original: {formato_orig.upper()})",
                 "data_modificacao": datetime.fromtimestamp(caminho_txt.stat().st_mtime).strftime("%d/%m/%Y %H:%M"),
                 "editavel": True, "deletavel": False, "eh_sistema": True, "formato_original": formato_orig,
-                "nome_arquivo_original_odt_ou_txt": odt_correspondente.name if formato_orig == 'odt' else nome_arq_sistema_txt
+                "nome_arquivo_original_docx_ou_txt": docx_correspondente.name if formato_orig == 'docx' else nome_arq_sistema_txt
             })
 
     # Modelos de usuário (peças e teses)
@@ -367,7 +364,7 @@ def gerenciar_modelos_page():
 
                     conteudo_completo_item = ""
                     arquivo_txt_associado = (
-                        pasta_usuario_tipo / (nome_arquivo_item[:-4] + ".txt" if formato_original_item == "odt" else nome_arquivo_item)
+                        pasta_usuario_tipo / (nome_arquivo_item[:-4] + ".txt" if formato_original_item == "docx" else nome_arquivo_item)
                     )
                     if arquivo_txt_associado.exists():
                         try:
@@ -422,7 +419,7 @@ def salvar_modelo_endpoint():
         nome_modelo_form = request.form.get('nome', '').strip() # Nome base que o usuário quer
         tipo_modelo = request.form.get('tipo') 
         conteudo_texto_form = request.form.get('conteudo', '')
-        modelo_nome_original_arquivo = request.form.get('modelo_nome_original') # Nome do .odt ou .txt original
+        modelo_nome_original_arquivo = request.form.get('modelo_nome_original') # Nome do .docx ou .txt original
         eh_predefinida = request.form.get('modelo_eh_predefinida', 'false').lower() == 'true'
         arquivo_upload = request.files.get('arquivo')
 
@@ -439,7 +436,7 @@ def salvar_modelo_endpoint():
 
         pasta_destino = PASTA_PECAS_USUARIO if tipo_modelo == 'peca' else PASTA_TESES_USUARIO
         
-        caminho_odt_final = pasta_destino / f"{nome_arquivo_base_seguro}.odt"
+        caminho_docx_final = pasta_destino / f"{nome_arquivo_base_seguro}.docx"
         caminho_txt_final = pasta_destino / f"{nome_arquivo_base_seguro}.txt"
         conteudo_final_para_txt = conteudo_texto_form.strip()
 
@@ -457,18 +454,18 @@ def salvar_modelo_endpoint():
                 conteudo_extraido_do_upload = extrair_texto_de_arquivo(caminho_temporario_upload)
                 conteudo_final_para_txt = conteudo_extraido_do_upload # Prioriza conteúdo do arquivo
                 
-                if extensao_upload == ".odt":
-                    # Se fez upload de ODT, ele será o novo ODT mestre.
-                    # Remove ODT antigo com nome novo se existir para evitar conflito com move
-                    if caminho_odt_final.exists() and (not modelo_nome_original_arquivo or Path(modelo_nome_original_arquivo).stem != nome_arquivo_base_seguro):
-                        os.remove(caminho_odt_final)
-                    shutil.move(str(caminho_temporario_upload), str(caminho_odt_final))
-                    logger.info(f"Novo arquivo .odt '{caminho_odt_final.name}' salvo/movido.")
+                if extensao_upload == ".docx":
+                    # Se fez upload de um DOCX, ele será o novo DOCX mestre.
+                    # Remove DOCX antigo com nome novo se existir para evitar conflito com move
+                    if caminho_docx_final.exists() and (not modelo_nome_original_arquivo or Path(modelo_nome_original_arquivo).stem != nome_arquivo_base_seguro):
+                        os.remove(caminho_docx_final)
+                    shutil.move(str(caminho_temporario_upload), str(caminho_docx_final))
+                    logger.info(f"Novo arquivo .docx '{caminho_docx_final.name}' salvo/movido.")
                 else: # .txt foi upado
-                    # Se um .txt foi upado, ele é o "mestre" textual. Remove qualquer .odt com o mesmo nome base.
-                    if caminho_odt_final.exists():
-                        logger.info(f"Removendo .odt '{caminho_odt_final.name}' pois um .txt foi carregado com o mesmo nome base.")
-                        os.remove(caminho_odt_final)
+                    # Se um .txt foi upado, ele é o "mestre" textual. Remove qualquer .docx com o mesmo nome base.
+                    if caminho_docx_final.exists():
+                        logger.info(f"Removendo . '{caminho_docx_final.name}' pois um .txt foi carregado com o mesmo nome base.")
+                        os.remove(caminho_docx_final)
                     # O conteúdo já foi extraído para conteudo_final_para_txt
                     os.remove(caminho_temporario_upload) # Remove temp .txt
             except ValueError as e_extract:
@@ -492,15 +489,15 @@ def salvar_modelo_endpoint():
 
             if pasta_origem: # Só renomeia/exclui se não for modelo de sistema que está sendo "copiado"
                 nome_base_antigo = Path(modelo_nome_original_arquivo).stem
-                odt_antigo = pasta_origem / f"{nome_base_antigo}.odt"
+                docx_antigo = pasta_origem / f"{nome_base_antigo}.docx"
                 txt_antigo = pasta_origem / f"{nome_base_antigo}.txt"
                 
-                if odt_antigo.exists(): 
-                    if not (arquivo_upload and Path(arquivo_upload.filename).suffix.lower() == ".odt"): # Se não foi substituído por um novo ODT
-                        if caminho_odt_final.exists(): os.remove(caminho_odt_final) # Remove o .odt do novo nome se já existia (raro)
-                        shutil.move(str(odt_antigo), str(caminho_odt_final))
-                    elif odt_antigo != caminho_odt_final : # Se o upload de ODT não foi para o mesmo path do antigo
-                        os.remove(odt_antigo) # Remove ODT antigo pois foi substituído por upload
+                if docx_antigo.exists(): 
+                    if not (arquivo_upload and Path(arquivo_upload.filename).suffix.lower() == ".docx"): # Se não foi substituído por um novo docx
+                        if caminho_docx_final.exists(): os.remove(caminho_docx_final) # Remove o .docx do novo nome se já existia (raro)
+                        shutil.move(str(docx_antigo), str(caminho_docx_final))
+                    elif docx_antigo != caminho_docx_final : # Se o upload de docx não foi para o mesmo path do antigo
+                        os.remove(docx_antigo) # Remove docx antigo pois foi substituído por upload
                 
                 if txt_antigo.exists() and txt_antigo != caminho_txt_final: # Se não está sobrescrevendo o mesmo arquivo
                     if caminho_txt_final.exists() and not (arquivo_upload and Path(arquivo_upload.filename).suffix.lower() == ".txt"):
@@ -509,7 +506,7 @@ def salvar_modelo_endpoint():
                         shutil.move(str(txt_antigo), str(caminho_txt_final))
         
         # Verifica se o caminho final já existe (para criação)
-        if not modelo_nome_original_arquivo and (caminho_txt_final.exists() or (arquivo_upload and Path(arquivo_upload.filename).suffix.lower() == ".odt" and caminho_odt_final.exists())):
+        if not modelo_nome_original_arquivo and (caminho_txt_final.exists() or (arquivo_upload and Path(arquivo_upload.filename).suffix.lower() == ".docx" and caminho_docx_final.exists())):
             return jsonify({"erro": f"Um item com o nome '{nome_arquivo_base_seguro}' já existe. Escolha outro nome."}), 400
 
 
@@ -529,7 +526,7 @@ def salvar_modelo_endpoint():
 def excluir_modelo_endpoint():
     logger = app.logger
     data = request.get_json()
-    nome_arquivo_ref = data.get('nome_arquivo') # Pode ser nome.odt ou nome.txt
+    nome_arquivo_ref = data.get('nome_arquivo') # Pode ser nome.docx ou nome.txt
     tipo = data.get('tipo')
     logger.info(f"Requisição para excluir: {nome_arquivo_ref}, tipo: {tipo}")
 
@@ -543,14 +540,14 @@ def excluir_modelo_endpoint():
     pasta_base_item = PASTA_PECAS_USUARIO if tipo == 'peca' else PASTA_TESES_USUARIO
     nome_base = Path(nome_arquivo_ref).stem
 
-    arquivo_odt_para_excluir = pasta_base_item / f"{nome_base}.odt"
+    arquivo_docx_para_excluir = pasta_base_item / f"{nome_base}.docx"
     arquivo_txt_para_excluir = pasta_base_item / f"{nome_base}.txt"
     
     excluido_algum = False
     try:
-        if arquivo_odt_para_excluir.exists() and arquivo_odt_para_excluir.is_file():
-            os.remove(arquivo_odt_para_excluir)
-            logger.info(f"Arquivo '{arquivo_odt_para_excluir.name}' excluído.")
+        if arquivo_docx_para_excluir.exists() and arquivo_docx_para_excluir.is_file():
+            os.remove(arquivo_docx_para_excluir)
+            logger.info(f"Arquivo '{arquivo_docx_para_excluir.name}' excluído.")
             excluido_algum = True
         if arquivo_txt_para_excluir.exists() and arquivo_txt_para_excluir.is_file():
             os.remove(arquivo_txt_para_excluir)
@@ -690,18 +687,18 @@ def gerar_peca_com_ia_endpoint():
             logger.error(f"Erro ao gerar .docx: {e_docx}", exc_info=True)
 
 
-        # Gerar .odt com odfpy
+        # Gerar .docx com odfpy
         try:
-            caminho_odt = caminho_completo_minuta.with_suffix(".odt")
-            odt = OpenDocumentText()
+            caminho_docx = caminho_completo_minuta.with_suffix(".docx")
+            docx = OpenDocumentText()
             for paragrafo in minuta_gerada.strip().split("\n\n"):
                 p = P(text=paragrafo.strip())
-                odt.text.addElement(p)
-            odt.save(str(caminho_odt))
-            logger.info(f"Minuta .odt salva em '{caminho_odt.name}'")
-            arquivos_gerados_nesta_etapa["minuta_gerada_odt"] = str(caminho_docx.relative_to(RAIZ_PROJETO))
-        except Exception as e_odt:
-            logger.error(f"Erro ao gerar .odt: {e_odt}", exc_info=True)
+                docx.text.addElement(p)
+            docx.save(str(caminho_docx))
+            logger.info(f"Minuta .docx salva em '{caminho_docx.name}'")
+            arquivos_gerados_nesta_etapa["minuta_gerada_docx"] = str(caminho_docx.relative_to(RAIZ_PROJETO))
+        except Exception as e_docx:
+            logger.error(f"Erro ao gerar .docx: {e_docx}", exc_info=True)
 
 
         # Registrar caminho para download

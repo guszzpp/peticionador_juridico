@@ -5,37 +5,32 @@ Recurso {{TIPO_RECURSO_MAIUSCULO}} nos {{TIPO_ACAO_ORIGINARIA}} nº {{NUM_PROCES
 Recorrente: {{NOME_RECORRENTE}}
 Recorrido: Ministério Público do Estado de Goiás
 
-O Ministério Público do Estado de Goiás, por meio deste {{NOME_NUCLEO_OU_PROMOTORIA}}, vem apresentar suas
-CONTRARRAZÕES AO RECURSO {{TIPO_RECURSO_MAIUSCULO}}
-interposto por {{NOME_RECORRENTE}}, com fundamento no artigo 1.030 do Código de Processo Civil c/c o artigo 3º do Código de Processo Penal, requerendo que sejam recebidas e regularmente processadas, conforme adiante aduzido.
+O MINISTÉRIO PÚBLICO DO ESTADO DE GOIÁS, por meio deste {{NOME_NUCLEO_OU_PROMOTORIA}}, vem apresentar suas CONTRARRAZÕES ao RECURSO {{TIPO_RECURSO_MAIUSCULO}} interposto por {{NOME_RECORRENTE_ MAIUSCULO}}, com fundamento no artigo 1.030 do Código de Processo Civil c/c o artigo 3º do Código de Processo Penal, requerendo que sejam recebidas e regularmente processadas, conforme adiante aduzido.
 
-{{CIDADE}}, {{DATA_ATUAL}}.
+Goiânia, data e hora da assinatura digital.
 
 {{NOME_PROMOTOR}}
 Promotor(a) de Justiça {{COMPLEMENTO_CARGO_PROMOTOR}}
 {{INFO_DELEGACAO_PROMOTOR}}
 
----
-
+ 
 CONTRARRAZÕES AO RECURSO {{TIPO_RECURSO_MAIUSCULO}}
 
 {{SAUDACAO_TRIBUNAL_SUPERIOR}},
 
-{{NOME_RECORRENTE}}, já qualificado(a) nos autos em epígrafe, inconformado(a) com o v. Acórdão proferido no(s) evento(s) n.º {{NUM_EVENTOS_ACORDAOS}}, interpôs o presente Recurso {{TIPO_RECURSO_MAIUSCULO}}, com fundamento no artigo {{ARTIGO_FUNDAMENTO_RECURSO}}.
+{{NOME_RECORRENTE}}, já qualificado(a) nos autos em epígrafe, inconformado(a) com o v. Acórdão proferido no(s) evento(s) n.º {{NUM_EVENTOS_ACORDAOS}}, interpôs o presente RECURSO {{TIPO_RECURSO_MAIUSCULO}}, com fundamento no artigo {{ARTIGO_FUNDAMENTO_RECURSO}}.
 
 {{RESUMO_PARA_A_PECA}}
 
 É o sucinto relatório.
 
-DO MÉRITO RECURSAL
-
 {{TESES_E_ARGUMENTOS}}
 
-DA CONCLUSÃO
+X.Da conclusão
 
 Ex positis, o Ministério Público do Estado de Goiás requer o não conhecimento do presente recurso e, caso conhecido, o seu total desprovimento, mantendo-se integralmente o v. acórdão recorrido por seus próprios e jurídicos fundamentos.
 
-{{CIDADE}}, {{DATA_ATUAL_ASSINATURA}}.
+Goiânia, data e hora da assinatura digital.
 
 {{NOME_PROMOTOR}}
 Promotor(a) de Justiça {{COMPLEMENTO_CARGO_PROMOTOR}}
