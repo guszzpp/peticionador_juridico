@@ -24,10 +24,9 @@ def sugerir_teses(
     # Usa Gemini Flash por padrão
     cliente = ClienteGemini() # Padrão Flash
 
-    # Prompt para extrair argumentos e sugerir contra-argumentos/teses
-    # Este prompt é crucial e pode precisar de muitos refinamentos!
+    # Prompt para extrair argumentos e sugerir contra-argumentos/teses    
     prompt = (
-        "Você é um assistente jurídico especializado em direito brasileiro e na elaboração de contrarrazões recursais "
+        "Você é um Procurador de Justiça especializado em direito penal brasileiro e na elaboração de contrarrazões recursais "
         "para o Ministério Público. Analise o texto da petição de recurso a seguir:\n\n"
         f"--- INÍCIO DO TEXTO DA PETIÇÃO ---\n{texto_peticao}\n--- FIM DO TEXTO DA PETIÇÃO ---\n\n"
         "Com base nos argumentos apresentados pelo recorrente no texto acima, identifique as principais teses ou pontos levantados por ele. "
@@ -38,14 +37,12 @@ def sugerir_teses(
         "Ausência de prequestionamento da matéria X\n"
         "Incidência da Súmula 7 do STJ\n"
         "Inépcia da argumentação recursal (Súmula 284/STF)\n"
-        "Mérito: Manutenção da decisão por seus próprios fundamentos"
-        # Adicione mais instruções se necessário sobre o formato
+        "Mérito: Manutenção da decisão por seus próprios fundamentos"        
     )
 
     resposta = cliente.resumir(prompt)
 
-    if resposta:
-        # Processa a resposta: espera-se uma lista de teses, uma por linha
+    if resposta:        
         teses_brutas = [linha.strip() for linha in resposta.splitlines() if linha.strip()]
         if teses_brutas:
              teses_sugeridas_api = teses_brutas
@@ -54,14 +51,6 @@ def sugerir_teses(
              log.warning("[AVISO GEMINI TESES] API retornou resposta vazia ou não formatada como lista de teses.")
     else:
         log.warning("[AVISO GEMINI TESES] API não retornou resposta para sugestão de teses.")
-
-    # Classifica as teses sugeridas pela API
+    
     presentes = [t for t in teses_sugeridas_api if t in modelos_existentes]
-    # Sugeridas são todas que vieram da API (incluindo as que já existem, talvez?)
-    # Ou podemos fazer sugeridas = novas? Vamos fazer sugeridas = todas da API por enquanto.
-    # novas = [t for t in teses_sugeridas_api if t not in presentes]
-
-    # Retorna no formato esperado pelo controlador
-    # Nota: Pode ser útil retornar todas as sugeridas pela API, mesmo que já "existam"
-    #       para o usuário ver o que a IA pensou.
     return {"presentes": presentes, "sugeridas": teses_sugeridas_api}
