@@ -10,7 +10,6 @@ from flask import (
     Flask, render_template, request, jsonify, flash,
     send_from_directory, current_app
 )
-from docx import Document
 from odf.opendocument import OpenDocumentText
 from odf.text import P
 from werkzeug.utils import secure_filename
@@ -682,24 +681,28 @@ def gerar_peca_com_ia_endpoint():
                 odt.text.addElement(p)
             odt.save(str(caminho_odt))
             logger.info(f"Minuta .odt salva em '{caminho_odt.name}'")
-            arquivos_gerados_nesta_etapa["minuta_gerada_odt"] = str(caminho_docx.relative_to(RAIZ_PROJETO))
+            arquivos_gerados_nesta_etapa["minuta_gerada_docx"] = str(caminho_docx.relative_to(RAIZ_PROJETO))
         except Exception as e_odt:
             logger.error(f"Erro ao gerar .odt: {e_odt}", exc_info=True)
 
 
         # Registrar caminho para download
-        caminho_relativo_minuta = caminho_completo_minuta.relative_to(RAIZ_PROJETO)
-        arquivos_gerados_nesta_etapa["minuta_gerada"] = str(caminho_relativo_minuta)
-
-        # Garante a estrutura correta
         if "ULTIMO_PROCESSAMENTO" not in app.config:
-            app.config["ULTIMO_PROCESSAMENTO"] = {"estado": {}, "arquivos": {}}
-
+            app.config["ULTIMO_PROCESSAMENTO"]["arquivos"] = arquivos_gerados_nesta_etapa
+        else:            
+            if "ULTIMO_PROCESSAMENTO" not in app.config:
+                app.config["ULTIMO_PROCESSAMENTO"] = {"estado": {}, "arquivos": arquivos_gerados_nesta_etapa}
+            else:
+                app.config["ULTIMO_PROCESSAMENTO"]["arquivos"] = arquivos_gerados_nesta_etapa
+            logger.warning("Chave 'ULTIMO_PROCESSAMENTO' não existia em app.config. Criada agora ao salvar arquivos da IA.")
+        
         if "arquivos" not in app.config["ULTIMO_PROCESSAMENTO"]:
             app.config["ULTIMO_PROCESSAMENTO"]["arquivos"] = {}
 
-        app.config["ULTIMO_PROCESSAMENTO"]["arquivos"].update(arquivos_gerados_nesta_etapa)
-        logger.info(f"Caminhos da minuta registrados para download: {arquivos_gerados_nesta_etapa}")
+        caminho_relativo_minuta = caminho_completo_minuta.relative_to(RAIZ_PROJETO)
+        app.config["ULTIMO_PROCESSAMENTO"]["arquivos"]["minuta_gerada"] = caminho_relativo_minuta
+        logger.info(f"Caminho da minuta registrado para download: {caminho_relativo_minuta}")
+
         return jsonify({"minuta_gerada": minuta_gerada})
 
     except Exception as e:
