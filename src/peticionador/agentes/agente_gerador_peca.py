@@ -87,8 +87,8 @@ Gere apenas o texto final da peça. Nada mais.
         try:
             caminho_docx_saida = PASTA_SAIDA / f"{nome_base}.docx"
             substituir_placeholders_em_docx(
-                caminho_entrada=str(caminho_modelo_docx),
-                caminho_saida=str(caminho_docx_saida),
+                entrada=str(caminho_modelo_docx),
+                saida=str(caminho_docx_saida),
                 dados=dados_processo | {
                     "RESUMO_PARA_A_PECA": extrair_placeholder(resposta, "RESUMO_PARA_A_PECA"),
                     "TESES_E_ARGUMENTOS": extrair_placeholder(resposta, "TESES_E_ARGUMENTOS")
@@ -105,6 +105,6 @@ Gere apenas o texto final da peça. Nada mais.
 def extrair_placeholder(texto: str, nome: str) -> str:
     """Extrai o conteúdo de um placeholder específico, delimitado por {{NOME}} e o próximo {{."""
     import re
-    pattern = re.compile(rf"\{{{{{nome}}}}}(.*?)(\{{{{|$))", re.DOTALL)
+    pattern = re.compile(rf"\{{{{{nome}}}}}\s*(.*?)(?=\n\s*\{{{{|\Z)", re.DOTALL)
     match = pattern.search(texto)
     return match.group(1).strip() if match else ""
