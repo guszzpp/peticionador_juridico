@@ -13,7 +13,7 @@ TipoModeloGemini = Literal[
     "models/gemini-1.5-flash",
 ]
 
-class ClienteGemini(ServicoResumidor): # ServicoResumidor pode precisar ser renomeado ou generalizado se só tem 'resumir'
+class ClienteGemini(ServicoResumidor):
     """
     Cliente para interagir com a API do Gemini, permitindo especificar o modelo e configurações de geração.
     """
@@ -95,8 +95,7 @@ class ClienteGemini(ServicoResumidor): # ServicoResumidor pode precisar ser reno
         except Exception as erro_api:
             log.error(f"[ERRO GEMINI API] Modelo: {self.target_model_name} - Erro: {erro_api}", exc_info=True)
             return f"[ERRO AO COMUNICAR COM API GEMINI: {erro_api}]"
-    
-    # Mantém resumir para compatibilidade, mas agora chama gerar_conteudo
+        
     # Para um resumo, geralmente não se especifica temperatura, deixa o padrão do modelo.
     def resumir(self, texto: str) -> Optional[str]:
         # Se você quiser uma temperatura específica para resumos, pode passar aqui
