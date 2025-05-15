@@ -14,8 +14,8 @@ def main():
     """
 
     modelos_por_tipo = {
-        "RE": "src/peticionador/modelos/contrarrazoes_re.txt",
-        "REsp": "src/peticionador/modelos/contrarrazoes_resp.txt",
+        "Recurso Extraordinário": "src/peticionador/modelos/contrarrazoes_re.txt",
+        "Recurso Especial": "src/peticionador/modelos/contrarrazoes_resp.txt",
     }
 
     modelo_padrao = "src/peticionador/modelos/contrarrazoes_resp.txt"

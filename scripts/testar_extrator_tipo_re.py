@@ -4,11 +4,11 @@ from peticionador.agentes.agente_extrator import extrair_info_roberta
 def main():
     exemplos = [
         {
-            "descricao": "REsp com menção explícita",
+            "descricao": "Recurso Especial com menção explícita",
             "texto": "EXCELENTÍSSIMO SENHOR DESEMBARGADOR\nRECORRENTE: Maria da Silva\nRecurso Especial interposto contra acórdão...",
         },
         {
-            "descricao": "RE com menção genérica",
+            "descricao": "Recurso Extraordinário com menção genérica",
             "texto": "RECORRENTE: João Pedro\nO presente extraordinário busca reforma de decisão...",
         },
         {

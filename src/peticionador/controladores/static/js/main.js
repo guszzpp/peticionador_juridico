@@ -347,7 +347,7 @@ $(document).ready(function () {
             return;
         }
 
-        let tipoRecursoDetectado = "REsp"; 
+        let tipoRecursoDetectado = "Recurso Especial"; 
         let dadosProcesso = {
             recorrente: "Recorrente não identificado",
             numero_processo: "Número não identificado"

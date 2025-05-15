@@ -44,11 +44,10 @@ def processar_peticao(
         estado.estrutura_base.update(dados_iniciais)
         log.info(f"Extração Gemini (Flash) concluída: {estado.estrutura_base}")
         
-        if hasattr(estado, 'numero_processo'): # Verifica se o campo existe
-            from peticionador.agentes.agente_extrator import extrair_numero_processo_cnj
-            estado.numero_processo = extrair_numero_processo_cnj(texto_pg1_valido)
-            estado.estrutura_base["numero_processo"] = estado.numero_processo
-
+        from peticionador.agentes.agente_extrator import extrair_numero_processo_cnj
+        numero_extraido = extrair_numero_processo_cnj(texto_pg1_valido)
+        estado.numero_processo = numero_extraido
+        estado.estrutura_base["numero_processo"] = numero_extraido
 
         # 3. Resumo técnico com Gemini Flash
         log.info("Iniciando Etapa 3: Geração de resumo com Gemini (Flash)...")

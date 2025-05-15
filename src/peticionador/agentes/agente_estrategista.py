@@ -27,11 +27,12 @@ def sugerir_teses(
     cliente = ClienteGemini()  # Padrão Flash
 
     tipo_extra = ""
-    if tipo_recurso == "RE":
+    if tipo_recurso == "Recurso Extraordinário":
+        
         tipo_extra = (
             "Priorize teses típicas de recursos extraordinários ao STF, como ausência de repercussão geral, ofensa reflexa, ou ausência de prequestionamento constitucional."
         )
-    elif tipo_recurso == "REsp":
+    elif tipo_recurso == "Recurso Especial":
         tipo_extra = (
             "Priorize teses típicas de recursos especiais ao STJ, como violação à lei federal, Súmula 7/STJ, ausência de prequestionamento infraconstitucional, ou inépcia da argumentação recursal."
         )

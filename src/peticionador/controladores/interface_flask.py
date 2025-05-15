@@ -38,12 +38,12 @@ PASTA_PECAS_USUARIO.mkdir(parents=True, exist_ok=True)
 PASTA_TESES_USUARIO.mkdir(parents=True, exist_ok=True)
 
 # Modelo Unificado
-NOME_ARQUIVO_MODELO_TXT_UNIFICADO = "modelo.txt"
+NOME_ARQUIVO_MODELO_TXT_UNIFICADO = "modelo.docx"
 CAMINHO_ARQUIVO_MODELO_TXT_UNIFICADO_COMPLETO = PASTA_MODELOS_BASE / NOME_ARQUIVO_MODELO_TXT_UNIFICADO
 
 CAMINHO_MODELOS: Dict[str, Path] = {
-    "RE": CAMINHO_ARQUIVO_MODELO_TXT_UNIFICADO_COMPLETO,
-    "REsp": CAMINHO_ARQUIVO_MODELO_TXT_UNIFICADO_COMPLETO,
+    "Recurso Extraodrinário": CAMINHO_ARQUIVO_MODELO_TXT_UNIFICADO_COMPLETO,
+    "Recurso Especial": CAMINHO_ARQUIVO_MODELO_TXT_UNIFICADO_COMPLETO,
     "Agravo": CAMINHO_ARQUIVO_MODELO_TXT_UNIFICADO_COMPLETO,
 }
 MODELO_PADRAO = str(CAMINHO_ARQUIVO_MODELO_TXT_UNIFICADO_COMPLETO) # Convertido para string
@@ -53,7 +53,7 @@ MODELOS_SISTEMA_NOMES = [NOME_ARQUIVO_MODELO_TXT_UNIFICADO]
 # Outras Constantes
 UPLOAD_FOLDER = RAIZ_PROJETO / "arquivos_upload"
 EXTENSOES_PERMITIDAS_PDF = {"pdf"}
-EXTENSOES_PERMITIDAS_MODELO_UPLOAD = {".txt", ".docx"}
+EXTENSOES_PERMITIDAS_MODELO_UPLOAD = {".docx"}
 TESES_DISPONIVEIS = []
 
 # --- Inicialização da Aplicação Flask ---
@@ -297,36 +297,27 @@ def obter_conteudo_modelo_endpoint():
         logger.warning(f"Tipo de modelo inválido '{tipo}' em /obter_conteudo_modelo.")
         return jsonify({"erro": "Tipo de modelo inválido."}), 400
 
-    if not caminho_arquivo_txt_para_ler or not caminho_arquivo_txt_para_ler.exists():
-         # Tenta fallback para .docx -> extrair -> salvar .txt -> ler .txt (se o original era .docx)
-        nome_base_original = Path(nome_arquivo_req).stem
-        pasta_original = PASTA_PECAS_USUARIO if tipo == 'peca' else PASTA_TESES_USUARIO
-        caminho_docx_original = pasta_original / f"{nome_base_original}.docx"
+    caminho_modelo_docx = None
+    if tipo == 'peca':
+        caminho_modelo_docx = PASTA_MODELOS_BASE / nome_arquivo_req if nome_arquivo_req in MODELOS_SISTEMA_NOMES \
+                            else PASTA_PECAS_USUARIO / nome_arquivo_req
+    elif tipo == 'tese':
+        caminho_modelo_docx = PASTA_TESES_USUARIO / nome_arquivo_req
+    else:
+        logger.warning(f"Tipo de modelo inválido '{tipo}' em /obter_conteudo_modelo.")
+        return jsonify({"erro": "Tipo de modelo inválido."}), 400
 
-        if caminho_docx_original.exists():
-            logger.warning(f"Arquivo .txt '{caminho_arquivo_txt_para_ler}' não encontrado, mas .docx '{caminho_docx_original}' existe. Tentando extrair.")
-            try:
-                conteudo_extraido = extrair_texto_de_arquivo(caminho_docx_original)
-                # Salva o .txt extraído para futuras requisições
-                with open(caminho_arquivo_txt_para_ler, "w", encoding="utf-8") as f_txt_novo:
-                    f_txt_novo.write(conteudo_extraido)
-                logger.info(f"Conteúdo extraído de '{caminho_docx_original.name}' e salvo em '{caminho_arquivo_txt_para_ler.name}'.")
-                return jsonify({"conteudo": conteudo_extraido})
-            except Exception as e_extract:
-                logger.error(f"Falha ao extrair/salvar .txt de '{caminho_docx_original.name}' sob demanda: {e_extract}", exc_info=True)
-                return jsonify({"erro": f"Falha ao processar o arquivo modelo original: {nome_arquivo_req}"}), 500
-        else:
-            logger.error(f"Arquivo .txt para '{nome_arquivo_req}' não encontrado (e nenhum .docx correspondente).")
-            return jsonify({"erro": f"Conteúdo textual para '{nome_arquivo_req}' não encontrado."}), 404
-            
+    if not caminho_modelo_docx.exists():
+        logger.error(f"Arquivo .docx para '{nome_arquivo_req}' não encontrado.")
+        return jsonify({"erro": f"Modelo '{nome_arquivo_req}' não encontrado no servidor."}), 404
+
     try:
-        with open(caminho_arquivo_txt_para_ler, "r", encoding="utf-8") as f:
-            conteudo = f.read()
-        logger.info(f"Conteúdo de '{caminho_arquivo_txt_para_ler.name}' lido com sucesso.")
+        conteudo = extrair_texto_de_arquivo(caminho_modelo_docx)
         return jsonify({"conteudo": conteudo})
     except Exception as e:
-        logger.error(f"Erro ao ler o arquivo de texto '{caminho_arquivo_txt_para_ler}': {e}", exc_info=True)
-        return jsonify({"erro": f"Erro interno ao ler o conteúdo do modelo: {e}"}), 500
+        logger.error(f"Erro ao extrair conteúdo de modelo .docx '{nome_arquivo_req}': {e}", exc_info=True)
+        return jsonify({"erro": f"Erro ao ler o modelo '{nome_arquivo_req}': {str(e)}"}), 500
+
 
 
 @app.route("/gerenciar_modelos")
@@ -338,18 +329,18 @@ def gerenciar_modelos_page():
     modelos_teses_lista = []
 
     # Modelos do sistema
-    for nome_arq_sistema_txt in MODELOS_SISTEMA_NOMES:
-        caminho_txt = PASTA_MODELOS_BASE / nome_arq_sistema_txt
+    for nome_arq_sistema_docx in MODELOS_SISTEMA_NOMES:
+        caminho_txt = PASTA_MODELOS_BASE / nome_arq_sistema_docx
         if caminho_txt.is_file():
-            nome_base = nome_arq_sistema_txt[:-4]
+            nome_base = nome_arq_sistema_docx[:-4]
             docx_correspondente = PASTA_MODELOS_BASE / f"{nome_base}.docx"
             formato_orig = "docx" if docx_correspondente.exists() else "txt"
             modelos_pecas.append({
-                "id": nome_arq_sistema_txt,
-                "nome": f"{nome_arq_sistema_txt} (Sistema, original: {formato_orig.upper()})",
+                "id": nome_arq_sistema_docx,
+                "nome": f"{nome_arq_sistema_docx} (Sistema, original: {formato_orig.upper()})",
                 "data_modificacao": datetime.fromtimestamp(caminho_txt.stat().st_mtime).strftime("%d/%m/%Y %H:%M"),
                 "editavel": True, "deletavel": False, "eh_sistema": True, "formato_original": formato_orig,
-                "nome_arquivo_original_docx_ou_txt": docx_correspondente.name if formato_orig == 'docx' else nome_arq_sistema_txt
+                "nome_arquivo_original_docx_ou_txt": docx_correspondente.name if formato_orig == 'docx' else nome_arq_sistema_docx
             })
 
     # Modelos de usuário (peças e teses)
@@ -596,18 +587,16 @@ def gerar_peca_com_ia_endpoint():
         return jsonify({"erro": "Resumo técnico e ao menos uma tese selecionada são necessários."}), 400
 
     ultimo_processamento_servidor = app.config.get("ULTIMO_PROCESSAMENTO")
-    dados_estado_servidor = {}
-    estrutura_base_servidor = {}
+    estrutura_base_servidor = ultimo_processamento_servidor["estado"]
 
     if ultimo_processamento_servidor and isinstance(ultimo_processamento_servidor.get("estado"), dict):
-        dados_estado_servidor = ultimo_processamento_servidor["estado"]
-        if isinstance(dados_estado_servidor.get("estrutura_base"), dict):
-            estrutura_base_servidor = dados_estado_servidor["estrutura_base"]
+        estrutura_base_servidor = ultimo_processamento_servidor["estado"]
+
     else:
         logger.warning("Nenhum 'ULTIMO_PROCESSAMENTO' válido encontrado no app.config. Usando dados do frontend ou defaults.")
 
-    resumo_tecnico_para_agente = dados_estado_servidor.get('resumo', resumo_tecnico_frontend)
-    tipo_recurso_para_agente = dados_estado_servidor.get('tipo_recurso', tipo_recurso_frontend)
+    resumo_tecnico_para_agente = estrutura_base_servidor.get('resumo', resumo_tecnico_frontend)
+    tipo_recurso_para_agente = estrutura_base_servidor.get('tipo_recurso', tipo_recurso_frontend)
 
     tipo_recurso_usado_para_modelo = "REsp"
     if tipo_recurso_para_agente and tipo_recurso_para_agente != "Indeterminado" and tipo_recurso_para_agente in CAMINHO_MODELOS:
@@ -621,22 +610,20 @@ def gerar_peca_com_ia_endpoint():
         logger.error(f"Modelo base TXT não encontrado: {modelo_path_obj} para tipo {tipo_recurso_usado_para_modelo}")
         return jsonify({"erro": f"Arquivo de modelo base (.txt) para '{tipo_recurso_usado_para_modelo}' não encontrado no servidor."}), 500
 
+    nome_recorrente_base = estrutura_base_servidor.get('recorrente') or dados_processo_frontend.get('recorrente', "{{NOME_RECORRENTE}}")
+
     dados_para_agente = {
-        'numero_processo': estrutura_base_servidor.get('numero_processo') or dados_processo_frontend.get('numero_processo', "{{NUM_PROCESSO}}"),
-        'recorrente': estrutura_base_servidor.get('recorrente') or dados_processo_frontend.get('recorrente', "{{NOME_RECORRENTE}}"),
-        'NOME_PROMOTOR': "Promotor(a) de Justiça",
-        'TIPO_RECURSO_MAIUSCULO': tipo_recurso_usado_para_modelo.upper(),
-        'SAUDACAO_TRIBUNAL_SUPERIOR': "COLENDO SUPERIOR TRIBUNAL DE JUSTIÇA" if tipo_recurso_usado_para_modelo == "REsp"
-                                     else "EXCELSO SUPREMO TRIBUNAL FEDERAL" if tipo_recurso_usado_para_modelo == "RE"
-                                     else "{{SAUDACAO_TRIBUNAL_SUPERIOR}}",
+        'NUM_PROCESSO': estrutura_base_servidor.get('numero_processo') or dados_processo_frontend.get('numero_processo', "{{NUM_PROCESSO}}"),
+        'NOME_RECORRENTE': nome_recorrente_base,
+        'NOME_RECORRENTE_MAIUSCULO': nome_recorrente_base.upper(),
+        'TIPO_RECURSO': tipo_recurso_usado_para_modelo,
+        'TIPO_RECURSO_MAIUSCULO': tipo_recurso_usado_para_modelo.upper(),        
+        'SAUDACAO_TRIBUNAL_SUPERIOR': "COLENDO SUPERIOR TRIBUNAL DE JUSTIÇA" if tipo_recurso_usado_para_modelo == "Recurso Especial"
+                                    else "EXCELSO SUPREMO TRIBUNAL FEDERAL" if tipo_recurso_usado_para_modelo == "Recurso Extraordinário"
+                                    else "{{SAUDACAO_TRIBUNAL_SUPERIOR}}",
         'NUM_EVENTOS_ACORDAOS': estrutura_base_servidor.get('num_eventos', "{{NUM_EVENTOS_ACORDAOS}}"),
         'ARTIGO_FUNDAMENTO_RECURSO': estrutura_base_servidor.get('artigo_fundamento', "{{ARTIGO_FUNDAMENTO_RECURSO}}"),
         'NUMERO_CONTRARRAZOES': "{{NUMERO_CONTRARRAZOES}}",
-        'ANO_ATUAL': str(datetime.now().year),
-        'NOME_NUCLEO_OU_PROMOTORIA': "{{NOME_NUCLEO_OU_PROMOTORIA}}",
-        'NUM_PORTARIA': "{{NUM_PORTARIA}}",
-        'COMPLEMENTO_CARGO_PROMOTOR': "",
-        'INFO_DELEGACAO_PROMOTOR': ""
     }
 
     logger.debug(f"Dados para agente: {dados_para_agente}")
@@ -702,8 +689,7 @@ def gerar_peca_com_ia_endpoint():
         # Registrar caminho para download
         caminho_relativo_minuta = caminho_completo_minuta.relative_to(RAIZ_PROJETO)
         arquivos_gerados_nesta_etapa["minuta_gerada"] = str(caminho_relativo_minuta)
-
-        # Garante a estrutura correta
+        
         if "ULTIMO_PROCESSAMENTO" not in app.config:
             app.config["ULTIMO_PROCESSAMENTO"] = {"estado": {}, "arquivos": {}}
 
@@ -717,12 +703,12 @@ def gerar_peca_com_ia_endpoint():
     except Exception as e:
         logger.exception("Erro crítico ao gerar ou salvar a minuta com IA.")
 
-    if "ULTIMO_PROCESSAMENTO" in app.config:
-        if "arquivos" in app.config["ULTIMO_PROCESSAMENTO"]:
-            del app.config["ULTIMO_PROCESSAMENTO"]["arquivos"]
-        logger.info("Chave 'arquivos' removida de ULTIMO_PROCESSAMENTO devido a erro.")
-    
-    return jsonify({"erro": f"Erro interno no servidor ao gerar ou salvar a peça: {str(e)}"}), 500
+        if "ULTIMO_PROCESSAMENTO" in app.config:
+            if "arquivos" in app.config["ULTIMO_PROCESSAMENTO"]:
+                del app.config["ULTIMO_PROCESSAMENTO"]["arquivos"]
+            logger.info("Chave 'arquivos' removida de ULTIMO_PROCESSAMENTO devido a erro.")
+
+        return jsonify({"erro": f"Erro interno no servidor ao gerar ou salvar a peça: {str(e)}"}), 500
 
 if __name__ == "__main__":
     # Configuração de logging para execução direta (python interface_flask.py)

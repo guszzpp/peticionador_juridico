@@ -39,15 +39,15 @@ def extrair_dados_iniciais_gemini(texto_pagina: Optional[str]) -> Dict[str, str]
         f"{texto_pagina}\n"
         "--- FIM DO TEXTO ---\n\n"
         "Sua tarefa é extrair DUAS informações:\n"
-        "1. O nome completo do RECORRENTE (a parte que interpôs o recurso).\n"
-        "2. O TIPO DE RECURSO principal mencionado (identifique como 'RE', 'REsp', 'Agravo' ou 'Indeterminado' se não for claro).\n\n"
+        "1. O nome completo do RECORRENTE (o nome da parte que interpôs o recurso, sendo que pode ser mais de um).\n"
+        "2. O TIPO DE RECURSO mencionado (identifique como 'Recurso Extraordinário', 'Recurso Especial', 'Agravo' ou 'Indeterminado' se não for claro).\n\n"
         "Responda APENAS no formato JSON, como no exemplo abaixo:\n"
         "{\n"
         '  "recorrente": "Nome Completo do Recorrente Encontrado",\n'
-        '  "tipo_recurso": "REsp"\n'
+        '  "tipo_recurso": "Recurso Especial"\n'
         "}\n\n"
         'Se não conseguir encontrar o nome do recorrente, use o valor "Desconhecido".\n'
-        'Se não conseguir identificar o tipo de recurso claramente como RE, REsp ou Agravo, use o valor "Indeterminado".\n'
+        'Se não conseguir identificar o tipo de recurso claramente como Recurso Extraordinário, Recurso Especial ou Agravo, use o valor "Indeterminado".\n'
         "Não inclua nenhuma outra informação ou explicação na sua resposta, apenas o JSON."
     )
 
@@ -77,7 +77,7 @@ def extrair_dados_iniciais_gemini(texto_pagina: Optional[str]) -> Dict[str, str]
             dados_extraidos = json.loads(resposta_limpa)
 
             if isinstance(dados_extraidos, dict) and "recorrente" in dados_extraidos and "tipo_recurso" in dados_extraidos:
-                tipos_validos = ["RE", "REsp", "Agravo", "Indeterminado", "Desconhecido"]
+                tipos_validos = ["Recurso Extraordinário", "Recurso Especial", "Agravo", "Indeterminado", "Desconhecido"]
                 if dados_extraidos.get("tipo_recurso") not in tipos_validos:
                     log.warning(f"Tipo de recurso '{dados_extraidos.get('tipo_recurso')}' não reconhecido pela IA. Usando 'Indeterminado'.")
                     dados_extraidos["tipo_recurso"] = "Indeterminado"

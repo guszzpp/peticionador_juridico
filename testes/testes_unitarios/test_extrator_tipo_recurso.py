@@ -7,16 +7,16 @@ from peticionador.agentes.agente_extrator import extrair_info_roberta
     "descricao,texto,recorrente_esperado,tipo_esperado",
     [
         (
-            "REsp com menção explícita",
+            "Recurso Especial com menção explícita",
             "RECORRENTE: Maria da Silva\nRecurso Especial interposto...",
             "Maria da Silva",
-            "REsp",
+            "Recurso Especial",
         ),
         (
-            "RE com menção genérica",
+            "Recurso Extraordinário com menção genérica",
             "RECORRENTE: João Pedro\nRecurso extraordinário contra acórdão...",
             "João Pedro",
-            "RE",
+            "Recurso Extraordinário",
         ),
         (
             "Agravo identificado",

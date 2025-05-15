@@ -8,7 +8,7 @@ def selecionar_modelo(
     Retorna o caminho do modelo apropriado conforme o tipo de recurso identificado.
 
     Parâmetros:
-        tipo_recurso (str): Ex: "RE", "REsp", "Agravo"
+        tipo_recurso (str): Ex: "Recurso Extraordinário", "Recurso Especial", "Agravo"
         modelos_por_tipo (dict): Mapeamento tipo → caminho do modelo
         modelo_padrao (str): Caminho do modelo padrão
 

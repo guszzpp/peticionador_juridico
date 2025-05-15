@@ -6,7 +6,7 @@ from typing import List, Dict, Optional
 from datetime import datetime
 from odf.opendocument import OpenDocumentText
 from odf.text import P as OdfParagraph
-
+from docx import Document
 from peticionador.servicos.integrador_gemini import ClienteGemini
 from peticionador.utilitarios.substituidor_docx import substituir_placeholders_em_docx
 
@@ -15,6 +15,20 @@ PASTA_SAIDA = RAIZ_PROJETO / "arquivos_gerados"
 PASTA_SAIDA.mkdir(parents=True, exist_ok=True)
 
 log = logging.getLogger(__name__)
+
+from docx import Document
+
+def extrair_texto_docx_para_prompt(caminho: Path) -> str:
+    """
+    Extrai o texto de um arquivo .docx para uso como modelo no prompt da IA.
+    Ignora parágrafos vazios e preserva a ordem.
+    """
+    doc = Document(str(caminho))
+    return "\n\n".join(
+        par.text.strip()
+        for par in doc.paragraphs
+        if par.text.strip()
+    )
 
 def construir_minuta_com_ia(
     resumo_tecnico: str,
@@ -30,7 +44,7 @@ def construir_minuta_com_ia(
 
     try:
         with open(modelo_base_path, "r", encoding="utf-8") as f:
-            conteudo_modelo_base = f.read()
+            conteudo_modelo_base = extrair_texto_docx_para_prompt(modelo_base_path)
     except Exception as e:
         log.error(f"Erro ao ler modelo base {modelo_base_path}: {e}")
         return f"[ERRO INTERNO: Falha ao ler modelo base - {e}]"
@@ -58,7 +72,7 @@ Você é um Procurador de Justiça do MPGO. Construa uma peça completa de contr
    Após a última tese, adicione obrigatoriamente uma seção final intitulada:
    "[n+1]. Da conclusão", que traga o fecho da peça com pedido de não provimento do recurso.
 3. Substitua os demais placeholders com os dados abaixo ou deixe o placeholder intacto se faltarem dados.
-
+4. Não utilize "Resp" ou "RE", escreva por extenso "Recurso Especial" ou "Recurso Extraordinário".
 --- DADOS DO PROCESSO ---
 {dados_processo}
 
@@ -93,6 +107,7 @@ Gere apenas o texto final da peça. Nada mais.
 
     # .docx (preserva formatação)
     caminho_modelo_docx = modelo_base_path.with_suffix(".docx")
+    caminho_docx_saida = PASTA_SAIDA / f"{nome_base}.docx"
     if caminho_modelo_docx.exists():
         try:
             substituir_placeholders_em_docx(
