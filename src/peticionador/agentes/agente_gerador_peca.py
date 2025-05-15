@@ -4,6 +4,8 @@ import logging
 from pathlib import Path
 from typing import List, Dict, Optional
 from datetime import datetime
+from odf.opendocument import OpenDocumentText
+from odf.text import P as OdfParagraph
 
 from peticionador.servicos.integrador_gemini import ClienteGemini
 from peticionador.utilitarios.substituidor_docx import substituir_placeholders_em_docx
@@ -74,36 +76,61 @@ Gere apenas o texto final da peça. Nada mais.
     resposta = resposta.strip()
     log.info("Minuta textual gerada com sucesso.")
 
-    # Salvar como .txt
+    # Nome base e caminhos
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     nome_base = f"minuta_gerada_{timestamp}"
     caminho_txt = PASTA_SAIDA / f"{nome_base}.txt"
+    caminho_docx_saida = PASTA_SAIDA / f"{nome_base}.docx"
+    caminho_odt = PASTA_SAIDA / f"{nome_base}.odt"
+
+    arquivos_gerados_nesta_etapa: Dict[str, str] = {}
+
+    # Salva .txt
     with open(caminho_txt, "w", encoding="utf-8") as f_out:
         f_out.write(resposta)
+    arquivos_gerados_nesta_etapa["minuta_gerada"] = str(caminho_txt.relative_to(RAIZ_PROJETO))
+    log.info(f"Minuta .txt salva em '{caminho_txt.name}'")
 
-    # Substituição no .docx (modelo com formatação)
+    # .docx (preserva formatação)
     caminho_modelo_docx = modelo_base_path.with_suffix(".docx")
     if caminho_modelo_docx.exists():
         try:
-            caminho_docx_saida = PASTA_SAIDA / f"{nome_base}.docx"
             substituir_placeholders_em_docx(
-                entrada=str(caminho_modelo_docx),
-                saida=str(caminho_docx_saida),
-                dados=dados_processo | {
+                caminho_modelo=caminho_modelo_docx,
+                caminho_saida=caminho_docx_saida,
+                substituicoes=dados_processo | {
                     "RESUMO_PARA_A_PECA": extrair_placeholder(resposta, "RESUMO_PARA_A_PECA"),
                     "TESES_E_ARGUMENTOS": extrair_placeholder(resposta, "TESES_E_ARGUMENTOS")
                 }
             )
-            log.info(f"Minuta .docx gerada com sucesso em {caminho_docx_saida.name}")
+            arquivos_gerados_nesta_etapa["minuta_gerada_docx"] = str(caminho_docx_saida.relative_to(RAIZ_PROJETO))
+            log.info(f"Minuta .docx salva em '{caminho_docx_saida.name}'")
         except Exception as e_docx:
-            log.error(f"Erro ao gerar .docx formatado: {e_docx}", exc_info=True)
+            log.error(f"Erro ao gerar .docx: {e_docx}", exc_info=True)
     else:
-        log.warning(f"Arquivo modelo .docx não encontrado: {caminho_modelo_docx}")
+        log.warning(f"Modelo .docx não encontrado: {caminho_modelo_docx.name}")
+
+    # .odt (simples)
+    try:
+        doc_odt = OpenDocumentText()
+        for par in resposta.strip().split("\n\n"):
+            doc_odt.text.addElement(OdfParagraph(text=par.strip()))
+        doc_odt.save(str(caminho_odt))
+        arquivos_gerados_nesta_etapa["minuta_gerada_odt"] = str(caminho_odt.relative_to(RAIZ_PROJETO))
+        log.info(f"Minuta .odt salva em '{caminho_odt.name}'")
+    except Exception as e_odt:
+        log.error(f"Erro ao gerar .odt: {e_odt}", exc_info=True)
+
+    # Registra arquivos para download
+    from flask import current_app
+    if current_app and current_app.config.get("ULTIMO_PROCESSAMENTO"):
+        current_app.config["ULTIMO_PROCESSAMENTO"].setdefault("arquivos", {}).update(arquivos_gerados_nesta_etapa)
 
     return resposta
 
+
 def extrair_placeholder(texto: str, nome: str) -> str:
-    """Extrai o conteúdo de um placeholder específico, delimitado por {{NOME}} e o próximo {{."""
+    """Extrai o conteúdo de um placeholder específico, delimitado por {{NOME}} até o próximo {{ ou fim."""
     import re
     pattern = re.compile(rf"\{{{{{nome}}}}}\s*(.*?)(?=\n\s*\{{{{|\Z)", re.DOTALL)
     match = pattern.search(texto)

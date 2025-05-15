@@ -624,8 +624,6 @@ def gerar_peca_com_ia_endpoint():
     dados_para_agente = {
         'numero_processo': estrutura_base_servidor.get('numero_processo') or dados_processo_frontend.get('numero_processo', "{{NUM_PROCESSO}}"),
         'recorrente': estrutura_base_servidor.get('recorrente') or dados_processo_frontend.get('recorrente', "{{NOME_RECORRENTE}}"),
-        'CIDADE': "Goiânia",
-        'DATA_ATUAL': format_date(datetime.now(), format="d 'de' MMMM 'de' y", locale='pt_BR'),
         'NOME_PROMOTOR': "Promotor(a) de Justiça",
         'TIPO_RECURSO_MAIUSCULO': tipo_recurso_usado_para_modelo.upper(),
         'SAUDACAO_TRIBUNAL_SUPERIOR': "COLENDO SUPERIOR TRIBUNAL DE JUSTIÇA" if tipo_recurso_usado_para_modelo == "REsp"

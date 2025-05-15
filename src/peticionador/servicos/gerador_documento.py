@@ -57,9 +57,7 @@ def gerar_peca_personalizada(
         "TESES_E_ARGUMENTOS": "\n\n".join(
             f"- {arg}" for arg in estado_peticao.argumentos_reutilizaveis
         ),
-        "NOME_PROMOTOR": "Fulano de Tal",  #  Poderá ser configurável depois
-        "CIDADE": "Goiânia",
-        "DATA_ATUAL": datetime.today().strftime("%d de %B de %Y"),
+        "NOME_PROMOTOR": "Fulano de Tal",  #  Poderá ser configurável depois        
     }
 
     texto_final = preencher_placeholders(texto_modelo, dados_substituiveis)
