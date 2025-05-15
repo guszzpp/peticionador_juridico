@@ -622,23 +622,35 @@ def gerar_peca_com_ia_endpoint():
         logger.info(f"Minuta gerada pela IA salva em '{caminho_txt}'")
         arquivos_gerados_nesta_etapa["minuta_gerada"] = str(caminho_txt.relative_to(RAIZ_PROJETO))
 
-        # 2. Criar .docx com formatação institucional
+        # 2. Criar .docx a partir do modelo com placeholders preservando formatação
         try:
-            from peticionador.utilitarios.formatador_docx import criar_docx_formatado
+            from peticionador.utilitarios.substituidor_docx import substituir_placeholders_em_docx
 
             caminho_docx = PASTA_MINUTAS_FINAIS_IA / f"{nome_arquivo_base}.docx"
-            criar_docx_formatado(
-                texto_completo=minuta_gerada,
+            substituir_placeholders_em_docx(
+                caminho_modelo=CAMINHO_ARQUIVO_MODELO_TXT_UNIFICADO_COMPLETO,
                 caminho_saida=caminho_docx,
-                dados_documento={
-                    "tipo_recurso": tipo_recurso_usado_para_modelo
+                substituicoes={
+                    "NUMERO_CONTRARRAZOES": "01",
+                    "ANO_ATUAL": str(datetime.now().year),
+                    "TIPO_RECURSO": tipo_recurso_usado_para_modelo,
+                    "TIPO_ACAO_ORIGINARIA": "ação originária",  # ou extraído do processo se aplicável
+                    "NUM_PROCESSO": dados_para_agente["NUM_PROCESSO"],
+                    "NOME_RECORRENTE": dados_para_agente["NOME_RECORRENTE"],
+                    "NOME_RECORRENTE_MAIUSCULO": dados_para_agente["NOME_RECORRENTE_MAIUSCULO"],
+                    "TIPO_RECURSO_MAIUSCULO": dados_para_agente["TIPO_RECURSO_MAIUSCULO"],
+                    "SAUDACAO_TRIBUNAL_SUPERIOR": dados_para_agente["SAUDACAO_TRIBUNAL_SUPERIOR"],
+                    "NUM_EVENTOS_ACORDAOS": dados_para_agente["NUM_EVENTOS_ACORDAOS"],
+                    "ARTIGO_FUNDAMENTO_RECURSO": dados_para_agente["ARTIGO_FUNDAMENTO_RECURSO"],
+                    "RESUMO_PARA_A_PECA": resumo_tecnico_para_agente.strip(),
+                    "TESES_E_ARGUMENTOS": "\\n\\n".join(teses_selecionadas),
+                    "NOME_PROMOTOR": "Fulano de Tal"  # altere conforme necessário
                 }
             )
-            logger.info(f"Minuta .docx formatada salva em '{caminho_docx}'")
+            logger.info(f"Minuta .docx substituída com sucesso em '{caminho_docx}'")
             arquivos_gerados_nesta_etapa["minuta_gerada_docx"] = str(caminho_docx.relative_to(RAIZ_PROJETO))
         except Exception as e_docx:
-            logger.error(f"Erro ao gerar .docx formatado: {e_docx}", exc_info=True)
-
+            logger.error(f"Erro ao gerar .docx formatado com substituições: {e_docx}", exc_info=True)
 
         # 3. Criar .odt usando odfpy (com melhor formatação)
         try:
