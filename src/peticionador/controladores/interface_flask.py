@@ -231,45 +231,6 @@ def processar():
         logger.exception(f"Erro geral inesperado ao processar a petição '{nome_seguro}'.")
         return jsonify({"erro": f"Erro inesperado no servidor durante o processamento: {str(erro)}"}), 500
 
-@app.route("/download/<tipo_arquivo>")
-def download(tipo_arquivo: str):
-    logger = app.logger
-    logger.info(f"Requisição de download para tipo: {tipo_arquivo}")
-    ultima_execucao = app.config.get("ULTIMO_PROCESSAMENTO")
-
-    if not ultima_execucao:
-        logger.warning("Tentativa de download sem processamento recente.")
-        flash("Nenhum processamento recente encontrado para download.", "warning")
-        return "Erro: Nenhum processamento recente encontrado.", 404
-
-    arquivos_gerados = ultima_execucao.get("arquivos", {})
-    if tipo_arquivo not in arquivos_gerados:
-        logger.warning(f"Tipo de arquivo '{tipo_arquivo}' não disponível para download.")
-        flash(f"Tipo de arquivo '{tipo_arquivo}' não está disponível para download.", "warning")
-        return f"Erro: Tipo {tipo_arquivo} não disponível.", 404
-
-    caminho_relativo = arquivos_gerados[tipo_arquivo]
-    caminho_absoluto = RAIZ_PROJETO / caminho_relativo
-
-    # Tenta substituir por .txt se existir e for mais representativo
-    caminho_txt = caminho_absoluto.with_suffix('.txt')
-    if caminho_txt.exists() and tipo_arquivo == "minuta_gerada":
-        logger.info(f"Preferindo arquivo .txt da IA para download: {caminho_txt.name}")
-        caminho_absoluto = caminho_txt
-
-    if not caminho_absoluto.exists():
-        logger.error(f"Arquivo para download não encontrado: {caminho_absoluto}")
-        flash(f"Erro: Arquivo '{caminho_absoluto.name}' não encontrado no servidor.", "danger")
-        return f"Erro: Arquivo '{caminho_absoluto.name}' não encontrado.", 404
-
-    logger.info(f"Enviando arquivo para download: {caminho_absoluto}")
-    return send_from_directory(
-        directory=caminho_absoluto.parent,
-        path=caminho_absoluto.name,
-        as_attachment=True
-    )
-
-
 @app.route("/obter_conteudo_modelo", methods=["GET"])
 def obter_conteudo_modelo_endpoint():
     # ... (código da rota como na sua última versão, está bom) ...
@@ -587,11 +548,10 @@ def gerar_peca_com_ia_endpoint():
         return jsonify({"erro": "Resumo técnico e ao menos uma tese selecionada são necessários."}), 400
 
     ultimo_processamento_servidor = app.config.get("ULTIMO_PROCESSAMENTO")
-    estrutura_base_servidor = ultimo_processamento_servidor["estado"]
+    estrutura_base_servidor = {}
 
     if ultimo_processamento_servidor and isinstance(ultimo_processamento_servidor.get("estado"), dict):
         estrutura_base_servidor = ultimo_processamento_servidor["estado"]
-
     else:
         logger.warning("Nenhum 'ULTIMO_PROCESSAMENTO' válido encontrado no app.config. Usando dados do frontend ou defaults.")
 
@@ -629,7 +589,7 @@ def gerar_peca_com_ia_endpoint():
     logger.debug(f"Dados para agente: {dados_para_agente}")
     logger.debug(f"Resumo para agente (início): {resumo_tecnico_para_agente[:200] if resumo_tecnico_para_agente else 'Nenhum'}...")
 
-    arquivos_gerados_nesta_etapa: Dict[str, str] = {}
+    arquivos_gerados_nesta_etapa = {}
 
     try:
         minuta_gerada = construir_minuta_com_ia(
@@ -651,75 +611,144 @@ def gerar_peca_com_ia_endpoint():
             logger.error("Agente de IA retornou None.")
             return jsonify({"erro": "A IA não retornou uma minuta válida."}), 500
 
-        # Salvar a minuta gerada como .txt
-        nome_arquivo_minuta_txt = f"minuta_gerada_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
-        caminho_completo_minuta = PASTA_MINUTAS_FINAIS_IA / nome_arquivo_minuta_txt
-
-        with open(caminho_completo_minuta, "w", encoding="utf-8") as f_minuta:
-            f_minuta.write(minuta_gerada)
-        logger.info(f"Minuta gerada pela IA salva em '{caminho_completo_minuta}'")
-
-        # Gerar .docx com python-docx
-        try:
-            caminho_docx = caminho_completo_minuta.with_suffix(".docx")
-            doc = Document()
-            for paragrafo in minuta_gerada.strip().split("\n\n"):
-                doc.add_paragraph(paragrafo.strip())
-            doc.save(caminho_docx)
-            logger.info(f"Minuta .docx salva em '{caminho_docx.name}'")
-            arquivos_gerados_nesta_etapa["minuta_gerada_docx"] = str(caminho_docx.relative_to(RAIZ_PROJETO))
-        except Exception as e_docx:
-            logger.error(f"Erro ao gerar .docx: {e_docx}", exc_info=True)
-
-
-        # Gerar .docx com odfpy
-        try:
-            caminho_docx = caminho_completo_minuta.with_suffix(".docx")
-            docx = OpenDocumentText()
-            for paragrafo in minuta_gerada.strip().split("\n\n"):
-                p = P(text=paragrafo.strip())
-                docx.text.addElement(p)
-            docx.save(str(caminho_docx))
-            logger.info(f"Minuta .docx salva em '{caminho_docx.name}'")
-            arquivos_gerados_nesta_etapa["minuta_gerada_docx"] = str(caminho_docx.relative_to(RAIZ_PROJETO))
-        except Exception as e_docx:
-            logger.error(f"Erro ao gerar .docx: {e_docx}", exc_info=True)
-
-
-        # Registrar caminho para download
-        caminho_relativo_minuta = caminho_completo_minuta.relative_to(RAIZ_PROJETO)
-        arquivos_gerados_nesta_etapa["minuta_gerada"] = str(caminho_relativo_minuta)
+        # Timestamp para os nomes de arquivo
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        nome_arquivo_base = f"minuta_gerada_{timestamp}"
         
+        # 1. Salvar a minuta como texto (.txt)
+        caminho_txt = PASTA_MINUTAS_FINAIS_IA / f"{nome_arquivo_base}.txt"
+        with open(caminho_txt, "w", encoding="utf-8") as f_minuta:
+            f_minuta.write(minuta_gerada)
+        logger.info(f"Minuta gerada pela IA salva em '{caminho_txt}'")
+        arquivos_gerados_nesta_etapa["minuta_gerada"] = str(caminho_txt.relative_to(RAIZ_PROJETO))
+
+        # 2. Criar .docx com formatação institucional
+        try:
+            from peticionador.utilitarios.formatador_docx import criar_docx_formatado
+
+            caminho_docx = PASTA_MINUTAS_FINAIS_IA / f"{nome_arquivo_base}.docx"
+            criar_docx_formatado(
+                texto_completo=minuta_gerada,
+                caminho_saida=caminho_docx,
+                dados_documento={
+                    "tipo_recurso": tipo_recurso_usado_para_modelo
+                }
+            )
+            logger.info(f"Minuta .docx formatada salva em '{caminho_docx}'")
+            arquivos_gerados_nesta_etapa["minuta_gerada_docx"] = str(caminho_docx.relative_to(RAIZ_PROJETO))
+        except Exception as e_docx:
+            logger.error(f"Erro ao gerar .docx formatado: {e_docx}", exc_info=True)
+
+
+        # 3. Criar .odt usando odfpy (com melhor formatação)
+        try:
+            from odf.opendocument import OpenDocumentText
+            from odf.style import Style, TextProperties, ParagraphProperties
+            from odf.text import P, H, Span
+            
+            caminho_odt = PASTA_MINUTAS_FINAIS_IA / f"{nome_arquivo_base}.odt"
+            
+            # Criar documento
+            doc_odt = OpenDocumentText()
+            
+            # Definir estilos
+            # Estilo para título
+            titulo_style = Style(name="TituloStyle", family="paragraph")
+            titulo_style.addElement(TextProperties(fontweight="bold", fontsize="14pt"))
+            titulo_style.addElement(ParagraphProperties(textalign="center"))
+            doc_odt.styles.addElement(titulo_style)
+            
+            # Estilo para texto normal justificado
+            texto_style = Style(name="TextoStyle", family="paragraph")
+            texto_style.addElement(TextProperties(fontsize="12pt"))
+            texto_style.addElement(ParagraphProperties(textalign="justify"))
+            doc_odt.styles.addElement(texto_style)
+            
+            # Adicionar título
+            titulo = H(outlinelevel=1, stylename=titulo_style)
+            titulo.addText(f"CONTRARRAZÕES AO {tipo_recurso_usado_para_modelo.upper()}")
+            doc_odt.text.addElement(titulo)
+            
+            # Adicionar parágrafos formatados
+            for paragrafo in minuta_gerada.strip().split("\n\n"):
+                p = P(stylename=texto_style)
+                p.addText(paragrafo.strip())
+                doc_odt.text.addElement(p)
+            
+            # Salvar documento
+            doc_odt.save(str(caminho_odt))
+            logger.info(f"Minuta .odt formatada salva em '{caminho_odt}'")
+            arquivos_gerados_nesta_etapa["minuta_gerada_odt"] = str(caminho_odt.relative_to(RAIZ_PROJETO))
+        except Exception as e_odt:
+            logger.error(f"Erro ao gerar .odt formatado: {e_odt}", exc_info=True)
+        
+        # Registrar caminhos para download
         if "ULTIMO_PROCESSAMENTO" not in app.config:
             app.config["ULTIMO_PROCESSAMENTO"] = {"estado": {}, "arquivos": {}}
-
         if "arquivos" not in app.config["ULTIMO_PROCESSAMENTO"]:
             app.config["ULTIMO_PROCESSAMENTO"]["arquivos"] = {}
-
+            
         app.config["ULTIMO_PROCESSAMENTO"]["arquivos"].update(arquivos_gerados_nesta_etapa)
-        logger.info(f"Caminhos da minuta registrados para download: {arquivos_gerados_nesta_etapa}")
+        logger.info(f"Caminhos registrados para download: {arquivos_gerados_nesta_etapa}")
+        
         return jsonify({"minuta_gerada": minuta_gerada})
 
     except Exception as e:
         logger.exception("Erro crítico ao gerar ou salvar a minuta com IA.")
-
-        if "ULTIMO_PROCESSAMENTO" in app.config:
-            if "arquivos" in app.config["ULTIMO_PROCESSAMENTO"]:
-                del app.config["ULTIMO_PROCESSAMENTO"]["arquivos"]
-            logger.info("Chave 'arquivos' removida de ULTIMO_PROCESSAMENTO devido a erro.")
-
         return jsonify({"erro": f"Erro interno no servidor ao gerar ou salvar a peça: {str(e)}"}), 500
 
-if __name__ == "__main__":
-    # Configuração de logging para execução direta (python interface_flask.py)
-    # Se rodando com 'flask run', o logger do app já é configurado em configurar_app()
-    if not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
-        if not app.logger.handlers: # Evitar duplicidade se já configurado
-            logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(module)s[%(lineno)d]: %(message)s')
-            app.logger.info("Logging básico configurado para execução standalone.")
-        else:
-            app.logger.info("Handlers de logging do app já existem.")
-    else: # Modo debug do Flask
-        app.logger.info("Rodando em modo debug do Flask, logger já configurado pelo Flask.")
+
+@app.route("/download/<tipo_arquivo>")
+def download(tipo_arquivo: str):
+    logger = app.logger
+    logger.info(f"Requisição de download para tipo: {tipo_arquivo}")
+    ultima_execucao = app.config.get("ULTIMO_PROCESSAMENTO")
+
+    if not ultima_execucao:
+        logger.warning("Tentativa de download sem processamento recente.")
+        flash("Nenhum processamento recente encontrado para download.", "warning")
+        return "Erro: Nenhum processamento recente encontrado.", 404
+
+    arquivos_gerados = ultima_execucao.get("arquivos", {})
+    logger.info(f"Arquivos disponíveis para download: {arquivos_gerados}")
     
-    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    # Mapeamento de sufixos amigáveis para os tipos reais de arquivo no dicionário
+    tipos_mapeados = {
+        "docx": "minuta_gerada_docx",
+        "odt": "minuta_gerada_odt",
+        "txt": "minuta_gerada",
+        "minuta_gerada_docx": "minuta_gerada_docx",
+        "minuta_gerada_odt": "minuta_gerada_odt",
+        "minuta_gerada": "minuta_gerada"
+    }
+    
+    tipo_arquivo_real = tipos_mapeados.get(tipo_arquivo, tipo_arquivo)
+    
+    if tipo_arquivo_real not in arquivos_gerados:
+        logger.warning(f"Tipo de arquivo '{tipo_arquivo_real}' não disponível para download.")
+        flash(f"Tipo de arquivo '{tipo_arquivo}' não está disponível para download.", "warning")
+        return f"Erro: Tipo {tipo_arquivo} não disponível. Arquivos disponíveis: {list(arquivos_gerados.keys())}", 404
+
+    caminho_relativo = arquivos_gerados[tipo_arquivo_real]
+    caminho_absoluto = RAIZ_PROJETO / caminho_relativo
+
+    if not caminho_absoluto.exists():
+        logger.error(f"Arquivo para download não encontrado: {caminho_absoluto}")
+        flash(f"Erro: Arquivo '{caminho_absoluto.name}' não encontrado no servidor.", "danger")
+        return f"Erro: Arquivo '{caminho_absoluto.name}' não encontrado.", 404
+
+    logger.info(f"Enviando arquivo para download: {caminho_absoluto}")
+    
+    # Detectar o tipo MIME adequado
+    content_type = None
+    if caminho_absoluto.suffix.lower() == '.docx':
+        content_type = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    elif caminho_absoluto.suffix.lower() == '.odt':
+        content_type = 'application/vnd.oasis.opendocument.text'
+    
+    return send_from_directory(
+        directory=str(caminho_absoluto.parent),
+        path=caminho_absoluto.name,
+        as_attachment=True,
+        mimetype=content_type
+    )
