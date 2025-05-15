@@ -34,7 +34,7 @@ def criar_docx_formatado(texto_completo: str, caminho_saida: Path, dados_documen
     # Definir estilos
     styles = doc.styles
     
-    # Estilo para título principal
+    # Estilo para título principal 
     titulo_style = styles.add_style('TituloPrincipal', WD_STYLE_TYPE.PARAGRAPH)
     titulo_font = titulo_style.font
     titulo_font.name = 'Arial'

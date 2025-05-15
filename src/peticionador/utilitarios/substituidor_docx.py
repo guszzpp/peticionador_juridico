@@ -1,12 +1,3 @@
-"""
-substituidor_docx.py
-
-Módulo utilitário para substituir placeholders em documentos .docx
-mantendo a formatação original do modelo.
-
-Requer: python-docx
-"""
-
 from docx import Document
 from pathlib import Path
 from typing import Dict
@@ -26,18 +17,24 @@ def substituir_placeholders_em_docx(
         caminho_saida (Path): Caminho onde o novo .docx formatado será salvo.
         substituicoes (Dict[str, str]): Dicionário com os placeholders (sem chaves duplas) e seus valores.
     """
+    # Garantir que todos os valores no dicionário de substituição sejam strings
+    substituicoes_str = {
+        k: str(v) if v is not None else "" 
+        for k, v in substituicoes.items()
+    }
+    
     doc = Document(caminho_modelo)
 
     # Substitui nos parágrafos principais
     for paragrafo in doc.paragraphs:
-        _substituir_em_paragrafo(paragrafo, substituicoes)
+        _substituir_em_paragrafo(paragrafo, substituicoes_str)
 
     # Substitui em células de tabelas, se houver
     for tabela in doc.tables:
         for linha in tabela.rows:
             for celula in linha.cells:
                 for paragrafo in celula.paragraphs:
-                    _substituir_em_paragrafo(paragrafo, substituicoes)
+                    _substituir_em_paragrafo(paragrafo, substituicoes_str)
 
     doc.save(caminho_saida)
 

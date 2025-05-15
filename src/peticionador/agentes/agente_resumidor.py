@@ -21,16 +21,26 @@ def gerar_resumo_tecnico(texto_para_resumir: Optional[str]) -> str:
          return "[ERRO: Modelo Gemini não pôde ser inicializado para resumo.]"
 
     prompt = (
-        f"""Sua tarefa é redigir um breve relatório introdutório para uma peça de contrarrazões recursais criminais, seguindo o estilo formal do Ministério Público. O relatório deve ser sucinto, objetivo, impessoal e focado estritamente nos atos processuais relevantes mencionados no texto fornecido (como números de acórdão, datas importantes, artigos de lei e súmulas invocados pelo recorrente, e os fundamentos centrais do recurso). Não emita juízo de valor nem realize análise jurídica. Conclua o relatório obrigatoriamente com a frase: "É o sucinto relatório."
+    f"""Você é um assistente jurídico responsável por redigir um relatório introdutório técnico para uma peça de contrarrazões recursais criminais.
 
-Texto base fornecido (geralmente o recurso da outra parte):
+Com base no texto a seguir — que corresponde à petição do recorrente —, redija de 2 a 3 parágrafos objetivos, impessoais e bem articulados, apresentando:
+
+1. Os principais atos processuais relevantes mencionados (acórdãos, datas, dispositivos legais);
+2. Os fundamentos centrais do recurso do recorrente.
+
+Não inclua:
+- Título da peça (ex: "CONTRARRAZÕES AO..."),
+- Nomes das partes ou identificação do processo,
+- Fórmulas de saudação (ex: "Egrégio Tribunal"),
+- Expressões opinativas ou conclusivas (ex: "deve ser desprovido").
+
+Texto base:
 ---
 {texto_para_resumir}
 ---
 
-Relatório das Contrarrazões:
-"""
-    )
+Retorne apenas os parágrafos técnicos, sem qualquer outro conteúdo ou marcação."""
+)
     
     # A função resumir() em ClienteGemini agora chama internamente gerar_conteudo().
     # Para resumos, a temperatura padrão do modelo costuma ser adequada.
