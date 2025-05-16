@@ -29,9 +29,7 @@
         <div class="card mb-4">
             <div class="card-header"><h5>3. Minuta das contrarrazões</h5></div>
             <div class="card-body">
-                <div id="preVisualizacaoMinuta" class="summernote">
-                    <!-- O conteúdo gerado pela IA será inserido aqui -->
-                </div>
+                <textarea id="editorRich" name="conteudo_minuta"></textarea>
                 <div class="d-flex justify-content-between mt-3">
                     <button type="button" id="btnGerarPecaIA" class="btn btn-primary">Gerar peça (com IA)</button>
                     <div>
@@ -69,7 +67,7 @@
         </div>
         
         <div class="card mt-4">
-            <div class="card-header"><h5>Teses aplicadas à minuta</h5></div>
+            <div class="card-header"><h5>Teses a serem aplicadas à minuta</h5></div>
             <div class="card-body" id="modelosTesesAplicadasContainer" style="max-height: 200px; overflow-y: auto;">
                 <p class="text-muted text-center" id="placeholderTesesAplicadas"><i>Nenhuma tese aplicada ainda.</i></p>
             </div>

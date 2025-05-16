@@ -479,7 +479,7 @@ $(document).ready(function () {
     
     document.getElementById("btnDownloadOdt").addEventListener("click", function (e) {
         e.preventDefault();
-        const conteudo = $('#preVisualizacaoMinuta').summernote('code');
+        const conteudo = tinymce.get('editorRich').getContent();
     
         fetch("/baixar_odt", {
             method: "POST",
@@ -496,4 +496,71 @@ $(document).ready(function () {
             window.URL.revokeObjectURL(url);
         });
     });
+});
+
+
+let editor;
+
+document.addEventListener("DOMContentLoaded", function () {
+  ClassicEditor
+    .create(document.querySelector('#editorRich'), {
+      language: 'pt-br'
+    })
+    .then(newEditor => {
+      editor = newEditor;
+      console.log("CKEditor carregado com sucesso.");
+    })
+    .catch(error => {
+      console.error(error);
+    });
+});
+
+function obterTextoDaMinuta() {
+  return editor.getData();
+}
+
+
+
+function baixarArquivo(tipo) {
+  const url = tipo === "docx" ? "/baixar_docx" : "/baixar_odt";
+  const conteudo = editor.getData();
+
+  fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ texto: conteudo })
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error("Erro ao gerar o arquivo.");
+      }
+      return response.blob();
+    })
+    .then(blob => {
+      const link = document.createElement("a");
+      link.href = window.URL.createObjectURL(blob);
+      link.download = tipo === "docx" ? "minuta.docx" : "minuta.odt";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    })
+    .catch(error => {
+      console.error("Erro:", error);
+      alert("Falha ao gerar o arquivo.");
+    });
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  const btnDocx = document.getElementById("btnDownloadDocx");
+  const btnOdt = document.getElementById("btnDownloadOdt");
+
+  if (btnDocx) {
+    btnDocx.addEventListener("click", () => baixarArquivo("docx"));
+  }
+
+  if (btnOdt) {
+    btnOdt.addEventListener("click", () => baixarArquivo("odt"));
+  }
 });

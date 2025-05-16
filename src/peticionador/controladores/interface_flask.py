@@ -22,6 +22,10 @@ from odf.opendocument import load as load_docx_file
 from peticionador.agentes.agente_estrategista import sugerir_teses
 from peticionador.controladores.controlador_principal import processar_peticao
 from peticionador.agentes.agente_gerador_peca import construir_minuta_com_ia
+from flask import request, send_file
+from flask import Flask, render_template
+from dotenv import load_dotenv
+import os
 
 # --- Constantes de Caminho e Configuração ---
 RAIZ_FLASK_APP = Path(__file__).resolve().parents[3]
@@ -87,6 +91,13 @@ def configurar_app() -> Flask:
 app = configurar_app()
 app.logger.info("Instância da aplicação Flask criada.")
 
+# Carrega variáveis do arquivo .env
+load_dotenv()
+
+# Adicione a chave do TinyMCE como uma variável global para templates
+@app.context_processor
+def inject_tinymce_key():
+    return {'TINYMCE_KEY': os.getenv('TINYMCE_KEY', 'no-api-key')}
 
 # --- Funções Auxiliares ---
 def extensao_permitida_geral(nome_arquivo: str, extensoes_validas: Set[str]) -> bool:
@@ -632,25 +643,11 @@ def gerar_peca_com_ia_endpoint():
 
 @app.route("/baixar_docx", methods=["POST"])
 def baixar_docx():
-    from docx import Document
     from flask import request, send_file
-    import io
+    from peticionador.utilitarios.formatador_final import gerar_docx_formatado
 
-    dados = request.get_json()
-    texto = dados.get("texto", "")
-    doc = Document()
-
-    from bs4 import BeautifulSoup
-
-    soup = BeautifulSoup(texto, "html.parser")
-    for tag in soup.find_all(['p', 'div']):
-        texto_limpo = tag.get_text(strip=True)
-        if texto_limpo:
-            doc.add_paragraph(texto_limpo)
-
-    buffer = io.BytesIO()
-    doc.save(buffer)
-    buffer.seek(0)
+    texto = request.get_json(force=True).get("texto", "")
+    buffer = gerar_docx_formatado(texto)
 
     return send_file(
         buffer,
@@ -659,30 +656,13 @@ def baixar_docx():
         download_name="minuta.docx"
     )
 
-
 @app.route("/baixar_odt", methods=["POST"])
 def baixar_odt():
-    from odf.opendocument import OpenDocumentText
-    from odf.text import P
     from flask import request, send_file
-    import io
+    from peticionador.utilitarios.formatador_final import gerar_odt_formatado
 
-    dados = request.get_json()
-    texto = dados.get("texto", "")
-
-    doc = OpenDocumentText()
-    from bs4 import BeautifulSoup
-
-    soup = BeautifulSoup(texto, "html.parser")
-    for tag in soup.find_all(['p', 'div']):
-        texto_limpo = tag.get_text(strip=True)
-        if texto_limpo:
-            p = P(text=texto_limpo)
-            doc.text.addElement(p)
-
-    buffer = io.BytesIO()
-    doc.save(buffer)
-    buffer.seek(0)
+    texto = request.get_json(force=True).get("texto", "")
+    buffer = gerar_odt_formatado(texto)
 
     return send_file(
         buffer,
