@@ -367,12 +367,11 @@ $(document).ready(function () {
                 $('#loadingModal').modal('hide');
             
                 if (response.minuta_gerada) {
-                    if (minutaTextArea.hasClass('note-editor')) {
-                        minutaTextArea.summernote('code', response.minuta_gerada.replace(/\n/g, '<br>'));
-                    } else {
-                        minutaTextArea.val(response.minuta_gerada);
-                    }
-            
+                    const htmlComQuebras = response.minuta_gerada
+                        .replace(/\n{2,}/g, '</p><p>')  // \n\n → novo parágrafo
+                        .replace(/\n/g, '<br>');        // \n → quebra de linha
+                    $('#preVisualizacaoMinuta').summernote('code', `<p>${htmlComQuebras}</p>`);
+                  
                     alert("Peça gerada com IA e atualizada na minuta!");
             
                     // ✅ Ativa os botões de download Word/LibreOffice
@@ -392,6 +391,20 @@ $(document).ready(function () {
         });
     });
     
+    $(document).ready(function() {
+        $('#preVisualizacaoMinuta').summernote({
+            placeholder: 'A minuta das contrarrazões será construída aqui com base no resumo, teses selecionadas e modelos...',
+            tabsize: 2,
+            height: 400,
+            lang: 'pt-BR', // Opcional
+            toolbar: [
+                ['style', ['bold', 'italic', 'underline', 'clear']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['insert', ['link']],
+                ['view', ['codeview']]
+            ]
+        });
+    });    
 
     // --- Funcionalidade do Menu Hambúrguer e Sidebar ---
     const sidebar = $('#sidebarMenu');
@@ -483,18 +496,4 @@ $(document).ready(function () {
             window.URL.revokeObjectURL(url);
         });
     });
-    $(document).ready(function() {
-        $('#preVisualizacaoMinuta').summernote({
-            placeholder: 'A minuta das contrarrazões será construída aqui com base no resumo, teses selecionadas e modelos...',
-            tabsize: 2,
-            height: 400,
-            lang: 'pt-BR', // Opcional
-            toolbar: [
-                ['style', ['bold', 'italic', 'underline', 'clear']],
-                ['para', ['ul', 'ol', 'paragraph']],
-                ['insert', ['link']],
-                ['view', ['codeview']]
-            ]
-        });
-    });    
 });

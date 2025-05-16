@@ -640,8 +640,13 @@ def baixar_docx():
     texto = dados.get("texto", "")
     doc = Document()
 
-    for par in texto.strip().split("\n\n"):
-        doc.add_paragraph(par.strip())
+    from bs4 import BeautifulSoup
+
+    soup = BeautifulSoup(texto, "html.parser")
+    for tag in soup.find_all(['p', 'div']):
+        texto_limpo = tag.get_text(strip=True)
+        if texto_limpo:
+            doc.add_paragraph(texto_limpo)
 
     buffer = io.BytesIO()
     doc.save(buffer)
@@ -666,9 +671,14 @@ def baixar_odt():
     texto = dados.get("texto", "")
 
     doc = OpenDocumentText()
-    for par in texto.strip().split("\n\n"):
-        p = P(text=par.strip())
-        doc.text.addElement(p)
+    from bs4 import BeautifulSoup
+
+    soup = BeautifulSoup(texto, "html.parser")
+    for tag in soup.find_all(['p', 'div']):
+        texto_limpo = tag.get_text(strip=True)
+        if texto_limpo:
+            p = P(text=texto_limpo)
+            doc.text.addElement(p)
 
     buffer = io.BytesIO()
     doc.save(buffer)
