@@ -622,145 +622,58 @@ def gerar_peca_com_ia_endpoint():
         logger.info(f"Minuta gerada pela IA salva em '{caminho_txt}'")
         arquivos_gerados_nesta_etapa["minuta_gerada"] = str(caminho_txt.relative_to(RAIZ_PROJETO))
 
-        # 2. Criar .docx a partir do modelo com placeholders preservando formatação
-        try:
-            from peticionador.utilitarios.substituidor_docx import substituir_placeholders_em_docx
-
-            caminho_docx = PASTA_MINUTAS_FINAIS_IA / f"{nome_arquivo_base}.docx"
-            substituir_placeholders_em_docx(
-                caminho_modelo=CAMINHO_ARQUIVO_MODELO_TXT_UNIFICADO_COMPLETO,
-                caminho_saida=caminho_docx,
-                substituicoes={
-                    "NUMERO_CONTRARRAZOES": "01",
-                    "ANO_ATUAL": str(datetime.now().year),
-                    "TIPO_RECURSO": tipo_recurso_usado_para_modelo,
-                    "TIPO_ACAO_ORIGINARIA": "ação originária",  # ou extraído do processo se aplicável
-                    "NUM_PROCESSO": dados_para_agente["NUM_PROCESSO"],
-                    "NOME_RECORRENTE": dados_para_agente["NOME_RECORRENTE"],
-                    "NOME_RECORRENTE_MAIUSCULO": dados_para_agente["NOME_RECORRENTE_MAIUSCULO"],
-                    "TIPO_RECURSO_MAIUSCULO": dados_para_agente["TIPO_RECURSO_MAIUSCULO"],
-                    "SAUDACAO_TRIBUNAL_SUPERIOR": dados_para_agente["SAUDACAO_TRIBUNAL_SUPERIOR"],
-                    "NUM_EVENTOS_ACORDAOS": dados_para_agente["NUM_EVENTOS_ACORDAOS"],
-                    "ARTIGO_FUNDAMENTO_RECURSO": dados_para_agente["ARTIGO_FUNDAMENTO_RECURSO"],
-                    "RESUMO_PARA_A_PECA": resumo_tecnico_para_agente.strip(),
-                    "TESES_E_ARGUMENTOS": "\\n\\n".join(teses_selecionadas),
-                    "NOME_PROMOTOR": "Fulano de Tal"  # altere conforme necessário
-                }
-            )
-            logger.info(f"Minuta .docx substituída com sucesso em '{caminho_docx}'")
-            arquivos_gerados_nesta_etapa["minuta_gerada_docx"] = str(caminho_docx.relative_to(RAIZ_PROJETO))
-        except Exception as e_docx:
-            logger.error(f"Erro ao gerar .docx formatado com substituições: {e_docx}", exc_info=True)
-
-        # 3. Criar .odt usando odfpy (com melhor formatação)
-        try:
-            from odf.opendocument import OpenDocumentText
-            from odf.style import Style, TextProperties, ParagraphProperties
-            from odf.text import P, H, Span
-            
-            caminho_odt = PASTA_MINUTAS_FINAIS_IA / f"{nome_arquivo_base}.odt"
-            
-            # Criar documento
-            doc_odt = OpenDocumentText()
-            
-            # Definir estilos
-            # Estilo para título
-            titulo_style = Style(name="TituloStyle", family="paragraph")
-            titulo_style.addElement(TextProperties(fontweight="bold", fontsize="14pt"))
-            titulo_style.addElement(ParagraphProperties(textalign="center"))
-            doc_odt.styles.addElement(titulo_style)
-            
-            # Estilo para texto normal justificado
-            texto_style = Style(name="TextoStyle", family="paragraph")
-            texto_style.addElement(TextProperties(fontsize="12pt"))
-            texto_style.addElement(ParagraphProperties(textalign="justify"))
-            doc_odt.styles.addElement(texto_style)
-            
-            # Adicionar título
-            titulo = H(outlinelevel=1, stylename=titulo_style)
-            titulo.addText(f"CONTRARRAZÕES AO {tipo_recurso_usado_para_modelo.upper()}")
-            doc_odt.text.addElement(titulo)
-            
-            # Adicionar parágrafos formatados
-            for paragrafo in minuta_gerada.strip().split("\n\n"):
-                p = P(stylename=texto_style)
-                p.addText(paragrafo.strip())
-                doc_odt.text.addElement(p)
-            
-            # Salvar documento
-            doc_odt.save(str(caminho_odt))
-            logger.info(f"Minuta .odt formatada salva em '{caminho_odt}'")
-            arquivos_gerados_nesta_etapa["minuta_gerada_odt"] = str(caminho_odt.relative_to(RAIZ_PROJETO))
-        except Exception as e_odt:
-            logger.error(f"Erro ao gerar .odt formatado: {e_odt}", exc_info=True)
-        
-        # Registrar caminhos para download
-        if "ULTIMO_PROCESSAMENTO" not in app.config:
-            app.config["ULTIMO_PROCESSAMENTO"] = {"estado": {}, "arquivos": {}}
-        if "arquivos" not in app.config["ULTIMO_PROCESSAMENTO"]:
-            app.config["ULTIMO_PROCESSAMENTO"]["arquivos"] = {}
-            
-        app.config["ULTIMO_PROCESSAMENTO"]["arquivos"].update(arquivos_gerados_nesta_etapa)
-        logger.info(f"Caminhos registrados para download: {arquivos_gerados_nesta_etapa}")
-        
-        return jsonify({"minuta_gerada": minuta_gerada})
-
     except Exception as e:
         logger.exception("Erro crítico ao gerar ou salvar a minuta com IA.")
         return jsonify({"erro": f"Erro interno no servidor ao gerar ou salvar a peça: {str(e)}"}), 500
 
 
-@app.route("/download/<tipo_arquivo>")
-def download(tipo_arquivo: str):
-    logger = app.logger
-    logger.info(f"Requisição de download para tipo: {tipo_arquivo}")
-    ultima_execucao = app.config.get("ULTIMO_PROCESSAMENTO")
+@app.route("/baixar_docx", methods=["POST"])
+def baixar_docx():
+    from docx import Document
+    from flask import request, send_file
+    import io
 
-    if not ultima_execucao:
-        logger.warning("Tentativa de download sem processamento recente.")
-        flash("Nenhum processamento recente encontrado para download.", "warning")
-        return "Erro: Nenhum processamento recente encontrado.", 404
+    dados = request.get_json()
+    texto = dados.get("texto", "")
+    doc = Document()
 
-    arquivos_gerados = ultima_execucao.get("arquivos", {})
-    logger.info(f"Arquivos disponíveis para download: {arquivos_gerados}")
-    
-    # Mapeamento de sufixos amigáveis para os tipos reais de arquivo no dicionário
-    tipos_mapeados = {
-        "docx": "minuta_gerada_docx",
-        "odt": "minuta_gerada_odt",
-        "txt": "minuta_gerada",
-        "minuta_gerada_docx": "minuta_gerada_docx",
-        "minuta_gerada_odt": "minuta_gerada_odt",
-        "minuta_gerada": "minuta_gerada"
-    }
-    
-    tipo_arquivo_real = tipos_mapeados.get(tipo_arquivo, tipo_arquivo)
-    
-    if tipo_arquivo_real not in arquivos_gerados:
-        logger.warning(f"Tipo de arquivo '{tipo_arquivo_real}' não disponível para download.")
-        flash(f"Tipo de arquivo '{tipo_arquivo}' não está disponível para download.", "warning")
-        return f"Erro: Tipo {tipo_arquivo} não disponível. Arquivos disponíveis: {list(arquivos_gerados.keys())}", 404
+    for par in texto.strip().split("\n\n"):
+        doc.add_paragraph(par.strip())
 
-    caminho_relativo = arquivos_gerados[tipo_arquivo_real]
-    caminho_absoluto = RAIZ_PROJETO / caminho_relativo
+    buffer = io.BytesIO()
+    doc.save(buffer)
+    buffer.seek(0)
 
-    if not caminho_absoluto.exists():
-        logger.error(f"Arquivo para download não encontrado: {caminho_absoluto}")
-        flash(f"Erro: Arquivo '{caminho_absoluto.name}' não encontrado no servidor.", "danger")
-        return f"Erro: Arquivo '{caminho_absoluto.name}' não encontrado.", 404
-
-    logger.info(f"Enviando arquivo para download: {caminho_absoluto}")
-    
-    # Detectar o tipo MIME adequado
-    content_type = None
-    if caminho_absoluto.suffix.lower() == '.docx':
-        content_type = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    elif caminho_absoluto.suffix.lower() == '.odt':
-        content_type = 'application/vnd.oasis.opendocument.text'
-    
-    return send_from_directory(
-        directory=str(caminho_absoluto.parent),
-        path=caminho_absoluto.name,
+    return send_file(
+        buffer,
+        mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         as_attachment=True,
-        mimetype=content_type
+        download_name="minuta.docx"
+    )
+
+
+@app.route("/baixar_odt", methods=["POST"])
+def baixar_odt():
+    from odf.opendocument import OpenDocumentText
+    from odf.text import P
+    from flask import request, send_file
+    import io
+
+    dados = request.get_json()
+    texto = dados.get("texto", "")
+
+    doc = OpenDocumentText()
+    for par in texto.strip().split("\n\n"):
+        p = P(text=par.strip())
+        doc.text.addElement(p)
+
+    buffer = io.BytesIO()
+    doc.save(buffer)
+    buffer.seek(0)
+
+    return send_file(
+        buffer,
+        mimetype="application/vnd.oasis.opendocument.text",
+        as_attachment=True,
+        download_name="minuta.odt"
     )
