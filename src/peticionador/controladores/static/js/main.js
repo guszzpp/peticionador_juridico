@@ -122,8 +122,7 @@ $(document).ready(function () {
                     // Ex: $(this).prepend('<i class="fas fa-plus-circle mr-2"></i> ');
                     containerTesesProntas.append($(this)); // Move de volta para o container de teses prontas
                 });
-
-                // Opcional: Reordenar os botões na lista de "Teses Prontas" alfabeticamente
+                
                 const buttonsInProntas = containerTesesProntas.find('.tese-button').get();
                 buttonsInProntas.sort(function(a, b) {
                     return $(a).text().trim().localeCompare($(b).text().trim());
@@ -135,26 +134,8 @@ $(document).ready(function () {
                 
                 atualizarPlaceholderTesesAplicadas();
 
-
-                arquivosGerados = response.arquivos || [];
-                const downloadUrlDocx = (typeof urlParaDownloadDocx !== 'undefined') ? urlParaDownloadDocx : '#';
-                const downloadUrlOdt = (typeof urlParaDownloadOdt !== 'undefined') ? urlParaDownloadOdt : '#';
-
-                if (arquivosGerados.includes('docx')) {
-                    $('#btnDownloadDocx').removeClass('disabled').attr('aria-disabled', 'false').attr('href', downloadUrlDocx);
-                } else {
-                     $('#btnDownloadDocx').addClass('disabled').attr('aria-disabled', 'true').attr('href', '#');
-                }
-                if (arquivosGerados.includes('odt')) {
-                    $('#btnDownloadOdt').removeClass('disabled').attr('aria-disabled', 'false').attr('href', downloadUrlOdt);
-                } else {
-                    $('#btnDownloadOdt').addClass('disabled').attr('aria-disabled', 'true').attr('href', '#');
-                }
-                
-                $('#resultadosModal').modal('show');
-                if (ultimoResultadoProcessado) {
-                    $('#btnReabrirAnalise').show();
-                }
+                $('#btnDownloadDocx').removeClass('disabled').attr('aria-disabled', 'false');
+                $('#btnDownloadOdt').removeClass('disabled').attr('aria-disabled', 'false');
             },
             error: function (xhr) {
                 $('#loadingModal').modal('hide');
