@@ -622,6 +622,9 @@ def gerar_peca_com_ia_endpoint():
         logger.info(f"Minuta gerada pela IA salva em '{caminho_txt}'")
         arquivos_gerados_nesta_etapa["minuta_gerada"] = str(caminho_txt.relative_to(RAIZ_PROJETO))
 
+        # ✅ Responder ao frontend com o texto gerado
+        return jsonify({"minuta_gerada": minuta_gerada})
+
     except Exception as e:
         logger.exception("Erro crítico ao gerar ou salvar a minuta com IA.")
         return jsonify({"erro": f"Erro interno no servidor ao gerar ou salvar a peça: {str(e)}"}), 500

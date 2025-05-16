@@ -444,4 +444,44 @@ $(document).ready(function () {
         if (mainContentArea.length) { mainContentArea.css('margin-left', '0');}
     });
 
+    document.getElementById("btnDownloadDocx").addEventListener("click", function (e) {
+        e.preventDefault();
+        const conteudo = document.getElementById("preVisualizacaoMinuta").value;
+    
+        fetch("/baixar_docx", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ texto: conteudo })
+        })
+        .then(response => response.blob())
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "minuta.docx";
+            a.click();
+            window.URL.revokeObjectURL(url);
+        });
+    });
+    
+    document.getElementById("btnDownloadOdt").addEventListener("click", function (e) {
+        e.preventDefault();
+        const conteudo = document.getElementById("preVisualizacaoMinuta").value;
+    
+        fetch("/baixar_odt", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ texto: conteudo })
+        })
+        .then(response => response.blob())
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "minuta.odt";
+            a.click();
+            window.URL.revokeObjectURL(url);
+        });
+    });
+
 }); // Fim do $(document).ready
