@@ -446,7 +446,7 @@ $(document).ready(function () {
 
     document.getElementById("btnDownloadDocx").addEventListener("click", function (e) {
         e.preventDefault();
-        const conteudo = document.getElementById("preVisualizacaoMinuta").value;
+        const conteudo = $('#preVisualizacaoMinuta').summernote('code');
     
         fetch("/baixar_docx", {
             method: "POST",
@@ -466,7 +466,7 @@ $(document).ready(function () {
     
     document.getElementById("btnDownloadOdt").addEventListener("click", function (e) {
         e.preventDefault();
-        const conteudo = document.getElementById("preVisualizacaoMinuta").value;
+        const conteudo = $('#preVisualizacaoMinuta').summernote('code');
     
         fetch("/baixar_odt", {
             method: "POST",
@@ -483,5 +483,18 @@ $(document).ready(function () {
             window.URL.revokeObjectURL(url);
         });
     });
-
-}); // Fim do $(document).ready
+    $(document).ready(function() {
+        $('#preVisualizacaoMinuta').summernote({
+            placeholder: 'A minuta das contrarrazões será construída aqui com base no resumo, teses selecionadas e modelos...',
+            tabsize: 2,
+            height: 400,
+            lang: 'pt-BR', // Opcional
+            toolbar: [
+                ['style', ['bold', 'italic', 'underline', 'clear']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['insert', ['link']],
+                ['view', ['codeview']]
+            ]
+        });
+    });    
+});
